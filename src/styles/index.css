@@ -1,0 +1,15 @@
+@import './tailwind.css';
+@import url('https://fonts.googleapis.com/css2?family=Bellefair:wght@400&family=Lora:wght@400&family=Cinzel:wght@400&display=swap');
+
+body {
+  font-family: 'Bellefair', 'Lora', 'Cinzel', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  :root {
+    /* Global Colors */
+    --global-bg-1: #fffaf2;
+    --global-bg-2: #ffffff7f;
+    --global-bg-3: #cdaf81;
+    --global-text-1: #67646a;
+    --global-text-2: #6b3d3d;
+
+    /* Sidebar Colors */
+    --sidebar-bg-1: #cdaf81;
+    --sidebar-bg-2: #ffffff7f;
+    --sidebar-text-1: #6b3d3d;
+
+    /* SearchView Colors */
+    --searchview-text-1: #67646a;
+
+    /* Table Colors */
+    --table-bg-1: #ceaf82bf;
+  }
+}
+
+@layer utilities {
+  /* Global */
+  .bg-global-1 {
+    background-color: var(--global-bg-1);
+  }
+  .bg-global-2 {
+    background-color: var(--global-bg-2);
+  }
+  .bg-global-3 {
+    background-color: var(--global-bg-3);
+  }
+  .text-global-1 {
+    color: var(--global-text-1);
+  }
+  .text-global-2 {
+    color: var(--global-text-2);
+  }
+
+  /* Sidebar */
+  .bg-sidebar-1 {
+    background-color: var(--sidebar-bg-1);
+  }
+  .bg-sidebar-2 {
+    background-color: var(--sidebar-bg-2);
+  }
+  .text-sidebar-1 {
+    color: var(--sidebar-text-1);
+  }
+
+  /* SearchView */
+  .text-searchview-1 {
+    color: var(--searchview-text-1);
+  }
+
+  /* Table */
+  .bg-table-1 {
+    background-color: var(--table-bg-1);
+  }
+}

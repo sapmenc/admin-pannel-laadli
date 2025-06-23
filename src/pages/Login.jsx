@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { adminLogin } from "../network/auth";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
@@ -12,13 +11,16 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await adminLogin(email, password);
-      console.log(response)
-      localStorage.setItem("userDetails", JSON.stringify(response.user));
+
+    // Hardcoded credentials
+    const hardcodedEmail = "admin@gmail.com";
+    const hardcodedPassword = "admin123";
+
+    if (email === hardcodedEmail && password === hardcodedPassword) {
+      // Simulate setting user and navigating to home
+      localStorage.setItem("userDetails", JSON.stringify({ email }));
       navigate("/");
-    } catch (error) {
-      console.error(error);
+    } else {
       setErrorMsg("Invalid email or password");
     }
   };
