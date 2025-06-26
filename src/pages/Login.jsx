@@ -19,7 +19,7 @@ const AdminLogin = () => {
     if (email === hardcodedEmail && password === hardcodedPassword) {
       // Simulate setting user and navigating to home
       localStorage.setItem("userDetails", JSON.stringify({ email }));
-      navigate("/");
+      navigate("/calendar");
     } else {
       setErrorMsg("Invalid email or password");
     }

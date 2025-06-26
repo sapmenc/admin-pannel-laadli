@@ -5,12 +5,15 @@ import Dashboard from '../pages/Home'; // Assuming Dashboard is Home
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from './protectedRoute';
 import MainLayout from '../layout/MainLayout';
-
+import ProductManagement from '../pages/ProductSection';
+import { FullScreenCalendar } from '../pages/CalendarSection.jsx';
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Route */}
       <Route path="/login" element={<Login />} />
+      <Route path="/product" element={<ProductManagement />} />
+      <Route path="/calendar" element={<FullScreenCalendar />} />
 
       {/* Protected Route */}
       <Route

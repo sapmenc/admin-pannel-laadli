@@ -14,7 +14,7 @@ const Sidebar = () => {
     {
       icon: "/images/img_qlementineiconsitemsgrid24.svg",
       label: "Products",
-      path: "/"
+      path: "/product"
     }
   ];
 
