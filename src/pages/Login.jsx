@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, XCircle } from 'lucide-react';
+import { adminLogin } from "../network/auth";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
@@ -11,22 +12,32 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Hardcoded credentials
-    const hardcodedEmail = "admin@gmail.com";
-    const hardcodedPassword = "admin123";
-
-    if (email === hardcodedEmail && password === hardcodedPassword) {
-      // Simulate setting user and navigating to home
-      localStorage.setItem("userDetails", JSON.stringify({ email }));
+    try {
+      const response = await adminLogin(email, password);
+      localStorage.setItem("userDetails", JSON.stringify(response.user));
       navigate("/calendar");
-    } else {
+    } catch (error) {
+      console.error(error);
       setErrorMsg("Invalid email or password");
+      setTimeout(() => setErrorMsg(''), 3000);
     }
   };
 
+  // Determine if email or password has at least one character
+  const isTyping = email.length > 0 || password.length > 0;
+
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex flex-col gap-10 items-center justify-center min-h-screen bg-[#fdf1dd] px-4">
+      
+      {/* Error Toast */}
+      {errorMsg && (
+        <div className="flex items-center justify-center bg-[#f8d7da] text-[#a94442] border border-[#a94442] px-4 py-2 p-5 rounded-md shadow-md w-[250px]">
+          <XCircle className="mr-2 text-[#a94442]" size={30} />
+          <span className="text-md font-semibold">{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Login Card */}
       <form
         onSubmit={handleSubmit}
         className="bg-[#fdf1dd] w-full max-w-sm p-8 rounded-xl shadow-lg"
@@ -63,11 +74,11 @@ const AdminLogin = () => {
           </div>
         </div>
 
-        {errorMsg && <p className="text-red-600 text-sm mt-2">{errorMsg}</p>}
-
         <button
           type="submit"
-          className="mt-6 w-full py-2 bg-[#f6e3c5] text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"
+          className={`mt-6 w-full py-2 ${
+            isTyping ? 'bg-sidebar-1' : 'bg-[#f6e3c5]'
+          } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all`}
         >
           Sign In
         </button>

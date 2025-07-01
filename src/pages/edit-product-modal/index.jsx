@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useUpdateProduct } from '../../hooks/use-edit-product';
 import ModalOverlay from './components/ModalOverlay';
 import FileUploadSection from './components/FileUploadsection';
+import { toast } from 'react-toastify';
 
 const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
+  const { mutate: updateProduct, isLoading } = useUpdateProduct({
+    onSuccess: (updatedProduct) => {
+      toast.success('Product updated successfully!');
+      onProductUpdate(updatedProduct);
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(`Update failed: ${error.message}`);
+    }
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     category: 'Premium',
@@ -20,7 +33,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
         category: product.category || 'Premium',
         description: product.description || ''
       });
-      setFiles(product.files || Array(5).fill(null));
+      setFiles(product.media || Array(5).fill(null));
       setSelectedOption(product.selectedOption ?? null);
     }
   }, [product, isOpen]);
@@ -47,15 +60,22 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
   const handleSave = () => {
     if (!validateForm()) return;
 
-    const updatedProduct = {
-      ...product,
+    const updates = {
       ...formData,
-      files: [...files],
       selectedOption,
-      lastUpdated: new Date().toLocaleString('en-GB')
+      lastUpdated: new Date().toISOString()
     };
 
-    onProductUpdate(updatedProduct);
+    // Filter out null files but keep existing URLs
+    const filesToUpload = files.map(file => 
+      file instanceof File ? file : null
+    ).filter(Boolean);
+
+    updateProduct({
+      id: product._id,
+      updates,
+      files: filesToUpload
+    });
   };
 
   const handleClose = () => {
@@ -65,7 +85,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
         category: product.category || 'Premium',
         description: product.description || ''
       });
-      setFiles(product.files || Array(5).fill(null));
+      setFiles(product.media || Array(5).fill(null));
       setSelectedOption(product.selectedOption ?? null);
     }
     setErrors({});
@@ -76,11 +96,20 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
     <ModalOverlay isOpen={isOpen} onClose={handleClose}>
       <div className="p-6 bg-[var(--global-bg-1)] rounded-xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-[var(--global-text-2)] font-bellefair text-2xl">Edit Product</h2>
-          <button onClick={handleClose} className="text-2xl text-[var(--global-text-2)]">×</button>
+          <h2 className="text-[var(--global-text-2)] font-bellefair text-2xl">
+            {isLoading ? 'Updating...' : 'Edit Product'}
+          </h2>
+          <button 
+            onClick={handleClose} 
+            className="text-2xl text-[var(--global-text-2)]"
+            disabled={isLoading}
+          >
+            ×
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8">
+          {/* Left Column - Form Fields */}
           <div className="space-y-4">
             <input
               type="text"
@@ -90,6 +119,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               className={`w-full rounded-xl border ${
                 errors.name ? 'border-red-500' : 'border-[var(--global-text-2)]'
               } px-4 py-3 bg-white text-base font-lora placeholder:text-[var(--global-text-2)] text-[var(--global-text-2)]`}
+              disabled={isLoading}
             />
             {errors.name && <span className="text-red-500 text-sm">{errors.name}</span>}
 
@@ -97,6 +127,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
               className="w-full rounded-xl border border-[var(--global-text-2)] px-4 py-3 bg-white text-base font-lora text-[var(--global-text-2)]"
+              disabled={isLoading}
             >
               <option value="Premium">Premium</option>
               <option value="Luxe">Luxe</option>
@@ -110,20 +141,19 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               className={`w-full rounded-xl border ${
                 errors.description ? 'border-red-500' : 'border-[var(--global-text-2)]'
               } px-4 py-3 bg-white text-base font-lora placeholder:text-[var(--global-text-2)] text-[var(--global-text-2)] resize-vertical`}
+              disabled={isLoading}
             />
             {errors.description && <span className="text-red-500 text-sm">{errors.description}</span>}
 
             <div className="border border-[var(--global-text-2)] bg-[#fff8f0] text-[var(--global-text-2)] text-sm font-lora rounded-lg p-3">
-              Note: Please optimize image and video assets to improve site loading speed. Use{' '}
-              <a href="https://cloudconvert.com" target="_blank" rel="noopener noreferrer" className="underline">
-                CloudConvert
-              </a>{' '}
-              to reduce file sizes.
+              Note: Please optimize image and video assets to improve site loading speed.
             </div>
           </div>
 
+          {/* Middle Divider */}
           <div className="hidden md:block border-r border-[#A0A0A0] mx-4 opacity-60"></div>
 
+          {/* Right Column - File Uploads */}
           <div className="grid grid-cols-2 gap-4">
             {files.map((file, index) => (
               <div key={index} className="flex items-start space-x-3">
@@ -133,22 +163,30 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
                   checked={selectedOption === index}
                   onChange={() => setSelectedOption(index)}
                   className="accent-[var(--global-text-2)] mt-3"
+                  disabled={isLoading}
                 />
                 <FileUploadSection
                   onFileSelect={(file) => handleFileSelect(index, file)}
                   selectedFile={file}
+                  disabled={isLoading}
                 />
               </div>
             ))}
           </div>
         </div>
 
+        {/* Save Button */}
         <div className="pt-6 flex justify-center">
           <button
             onClick={handleSave}
-            className="mt-6 w-[200px] py-2 bg-[#f6e3c5] text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"
+            disabled={isLoading}
+            className={`mt-6 w-[200px] py-2 ${
+              isLoading ? 'bg-gray-300' : 'bg-[#f6e3c5] hover:shadow-lg'
+            } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border ${
+              isLoading ? 'border-gray-400' : 'border-[#eac089]'
+            } transition-all`}
           >
-            Save
+            {isLoading ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>

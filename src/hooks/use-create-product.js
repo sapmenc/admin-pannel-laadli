@@ -1,34 +1,42 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import config from '@/config/env';
+import { BASE_URL } from '@/config/api';
 
-const createProductAPI = async ({ formData }) => {
-  const response = await fetch(config.buildApiUrl('products'), {
+const createProductAPI = async (formData) => {  // Removed object destructuring
+  const response = await fetch(`${BASE_URL}/products`, {
     method: 'POST',
     credentials: 'include',
     body: formData,
- 
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to create product');
+    throw new Error(
+      errorData.message || 'Product creation failed. Please try again.'
+    );
   }
 
-  return response.json();
+  return await response.json();
 };
 
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ formData }) => createProductAPI({ formData }),
+    mutationFn: createProductAPI,  // Simplified since we're passing formData directly
     onSuccess: (data) => {
-      console.log('Product created successfully', data);
-      // Invalidate and refetch products query to update the UI
+      console.log('✅ Product created successfully:', data);
+      // Optimistic updates options:
+      // 1. Invalidate all products queries
       queryClient.invalidateQueries(['products']);
+      
+      // OR 2. Add the new product to existing cache
+      // queryClient.setQueryData(['products'], (old) => {
+      //   return { ...old, products: [data, ...old.products] };
+      // });
     },
     onError: (error) => {
-      console.error('Error creating product:', error.message);
+      console.error('❌ Product creation error:', error.message);
+      // Consider adding toast notifications here
     },
     retry: 1,
     retryDelay: 1000,

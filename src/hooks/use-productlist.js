@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import config from '@/config/env';
+import { BASE_URL } from '@/config/api';
 
-const getProductsAPI = async (page = 1) => {
-  const response = await fetch(config.buildApiUrl(`products?page=${page}`), {
+const getProductsAPI = async (page) => {
+  const response = await fetch(`${BASE_URL}/products?page=${page}`, {
     method: 'GET',
-    credentials: 'include',
+    credentials: 'include', // Important for cookie-based auth
     headers: {
       'Content-Type': 'application/json',
     },
@@ -15,21 +15,30 @@ const getProductsAPI = async (page = 1) => {
     throw new Error(errorData.message || 'Failed to fetch products');
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Return whole object so UI can use total, page, pages
+  return {
+    products: data.products || [],
+    currentPage: data.page,
+    totalPages: data.pages,
+    totalCount: data.total,
+  };
 };
 
-export const useGetProducts = (page = 1) => {
+export const useGetProducts = (page) => {
   return useQuery({
     queryKey: ['products', page],
     queryFn: () => getProductsAPI(page),
-    onSuccess: (data) => {
-      console.log('Products fetched successfully', data);
-    },
-    onError: (error) => {
-      console.error('Error fetching products:', error.message);
-    },
+    enabled: !!page,
+    keepPreviousData: true,
     retry: 1,
     retryDelay: 1000,
-    keepPreviousData: true,
+    onSuccess: (data) => {
+      console.log('✅ Products fetched successfully:', data);
+    },
+    onError: (error) => {
+      console.error('❌ Error fetching products:', error.message);
+    },
   });
 };

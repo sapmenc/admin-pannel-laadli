@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import config from '@/config/env';
+import config from '@/config/api'
 
 const getProductByIdAPI = async (productId) => {
   const response = await fetch(config.buildApiUrl(`products/${productId}`), {

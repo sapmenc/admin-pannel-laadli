@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import config from '@/config/env';
+import { BASE_URL } from '@/config/api';
 
 const deleteProductAPI = async (productId) => {
-  const response = await fetch(config.buildApiUrl(`products/${productId}`), {
+  const response = await fetch(`${BASE_URL}/products/${productId}`, {
     method: 'DELETE',
-    credentials: 'include',
+    credentials: 'include', // Important for cookie-based auth
     headers: {
       'Content-Type': 'application/json',
     },
@@ -15,23 +15,37 @@ const deleteProductAPI = async (productId) => {
     throw new Error(errorData.message || 'Failed to delete product');
   }
 
-  return response.json();
+  return await response.json();
 };
 
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (productId) => deleteProductAPI(productId),
+    mutationFn: deleteProductAPI,
     onSuccess: (data, productId) => {
-      console.log('Product deleted successfully', data);
+      console.log('✅ Product deleted successfully:', data);
       
+      // Invalidate all products queries to refetch updated list
       queryClient.invalidateQueries(['products']);
-      // Remove the specific product from cache if it exists
-      queryClient.removeQueries(['product', productId]);
+      
+      // Optimistically remove the deleted product from cache
+      queryClient.setQueryData(['products'], (oldData) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          products: oldData.products.filter(p => p._id !== productId),
+          totalCount: oldData.totalCount - 1
+        };
+      });
     },
     onError: (error) => {
-      console.error('Error deleting product:', error.message);
+      console.error('❌ Error deleting product:', error.message);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries(['products']);
     },
     retry: 1,
     retryDelay: 1000,

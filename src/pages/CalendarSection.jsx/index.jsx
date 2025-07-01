@@ -14,6 +14,7 @@ import {
   isSameMonth,
   isToday,
   parse,
+  parseISO,
   startOfMonth,
   startOfToday,
   startOfWeek,
@@ -25,6 +26,7 @@ import Sidebar from "../../components/Sidebar";
 import Button from "./components/Buttons";
 import { useMediaQuery } from "./components/useMediaQuery";
 import { useSelectedDate } from "./components/SelectDate";
+import { useBlockedDates } from "../../hooks/Calendar/use-blockdates";
 
 const colStartClasses = [
   "",
@@ -38,14 +40,23 @@ const colStartClasses = [
 
 export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }) {
   const today = startOfToday();
-  const [selectedDay, setSelectedDay] = React.useState(subDays(new Date(), 1));
+  const [selectedDay, setSelectedDay] = React.useState(today);
   const [currentMonth, setCurrentMonth] = React.useState(format(today, "MMM-yyyy"));
   const { setSelectedDate } = useSelectedDate();
   const [unavailableMessage, setUnavailableMessage] = React.useState(false);
-  const [blockedDates, setBlockedDates] = React.useState([]);
   const [showSuccessMessage, setShowSuccessMessage] = React.useState(false);
   const [showErrorMessage, setShowErrorMessage] = React.useState(false);
   const [message, setMessage] = React.useState("");
+  const [showBlockedMessage, setShowBlockedMessage] = React.useState(false);
+
+  const {
+    blockedDates,
+    loading: isLoading,
+    error: blockedDatesError,
+    setAllBlockedDates,
+    removeBlockedDate,
+    addBlockedDate,
+  } = useBlockedDates();
 
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -63,13 +74,14 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
     const today = new Date();
     const isUnavailable = unavailableDates.some((d) => isSameDay(d, day));
     const isBlocked = blockedDates.some((d) => isSameDay(d, day));
-    
+
     setUnavailableMessage(isUnavailable);
-    
+
     if (isUnavailable) return;
 
     setSelectedDay(day);
     setSelectedDate(day);
+    setShowBlockedMessage(isBlocked);
 
     const wasSelected = isToday(day) || !isBefore(day, today);
     if (typeof onUserSelectedDate === "function") {
@@ -77,22 +89,33 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
     }
   };
 
-  const toggleBlockDate = () => {
+  const toggleBlockDate = async () => {
     const isBlocked = blockedDates.some((d) => isSameDay(d, selectedDay));
-    
+
+    // Show message immediately before API call
     if (isBlocked) {
-      // Unblock the date
-      const updatedDates = blockedDates.filter((d) => !isSameDay(d, selectedDay));
-      setBlockedDates(updatedDates);
       setMessage("Date successfully unblocked");
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 3000);
     } else {
-      // Block the date
-      setBlockedDates([...blockedDates, selectedDay]);
       setMessage("Date successfully blocked");
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 3000);
+    }
+    setShowSuccessMessage(true);
+    setShowBlockedMessage(false);
+
+    try {
+      if (isBlocked) {
+        await removeBlockedDate(selectedDay);
+      } else {
+        await addBlockedDate(selectedDay);
+      }
+    } catch (error) {
+      setShowSuccessMessage(false);
+      setShowErrorMessage(true);
+      setMessage("Failed to update date status");
+    } finally {
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        setShowErrorMessage(false);
+      }, 5000);
     }
   };
 
@@ -120,67 +143,70 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
       <Header />
       <div className="flex flex-row flex-1 min-h-0">
         <Sidebar />
-        
+
         <div className="flex flex-col flex-1 p-6 bg-global-1 overflow-auto items-center">
           <div className="w-full max-w-[1348px] relative mt-5">
             {/* Combined Success/Error/Blocked Messages */}
-            {(showSuccessMessage || showErrorMessage || isSelectedBlocked) && (
+            {(showSuccessMessage || showErrorMessage || showBlockedMessage) && (
               <div
                 className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 flex items-center justify-between p-4 rounded-md shadow-lg ${
-                  showSuccessMessage 
-                    ? "bg-green-100 text-green-800" 
-                    : isSelectedBlocked 
-                      ? "bg-[#f6e3c5] border border-[#4b2b2b] text-[#4b2b2b]"
-                      : "bg-red-100 text-red-800"
+                  showSuccessMessage
+                    ? "bg-green-100 font-semibold text-green-800"
+                    : showBlockedMessage
+                    ? "bg-[#f6e3c5] border font-semibold border-[#4b2b2b] text-[#4b2b2b]"
+                    : "bg-red-100 text-red-800"
                 }`}
               >
                 <div className="flex items-center">
                   {showSuccessMessage ? (
-                    <CheckIcon className="h-5 w-5 mr-2" />
-                  ) : isSelectedBlocked ? null : (
+                    <CheckIcon className="h-5 w-6 mr-2" />
+                  ) : showBlockedMessage ? null : (
                     <XIcon className="h-5 w-5 mr-2" />
                   )}
-                  <span>
-                    {showSuccessMessage 
-                      ? message 
-                      : isSelectedBlocked 
-                        ? "This date is already blocked, Click unblock button" 
-                        : message}
+                  <span className="flex items-center gap-2">
+                    {showSuccessMessage ? (
+                      message
+                    ) : showBlockedMessage ? (
+                      <>
+                        This date is already blocked, Click unblock button
+                        <XIcon className="h-5 w-5" />
+                      </>
+                    ) : (
+                      message
+                    )}
                   </span>
                 </div>
                 <button
                   onClick={() => {
                     setShowSuccessMessage(false);
                     setShowErrorMessage(false);
+                    setShowBlockedMessage(false);
                   }}
                   className="ml-4"
-                >
-                  <XIcon className="h-5 w-5" />
-                </button>
+                ></button>
               </div>
             )}
 
             {/* Calendar Header with current date between arrows */}
-            <div className="inline-flex w-full mb-4 -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
+            <div className="inline-flex border-2 p-2 border-black w-full mb-4 -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
               <Button
                 onClick={previousMonth}
                 disabled={disablePrev}
-                className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#808080] focus-visible:z-10"
-                variant="outline"
+                className="rounded-none pr-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-[#060505] focus-visible:z-10"
                 size="icon"
                 aria-label="Navigate to previous month"
               >
                 <ChevronLeftIcon size={16} strokeWidth={2} aria-hidden="true" />
               </Button>
               <Button
-                className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#808080] focus-visible:z-10 md:w-auto cursor-default"
+                className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#000000] focus-visible:z-10 md:w-auto cursor-default"
                 variant="outline"
               >
-                {format(firstDayCurrentMonth, "MMM dd, yyyy")}
+                {format(selectedDay, "MMM dd, yyyy")}
               </Button>
               <Button
                 onClick={nextMonth}
-                className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#808080] focus-visible:z-10"
+                className="rounded-none pl-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-[#808080] focus-visible:z-10"
                 variant="outline"
                 size="icon"
                 aria-label="Navigate to next month"
@@ -188,7 +214,8 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                 <ChevronRightIcon size={16} strokeWidth={2} aria-hidden="true" />
               </Button>
             </div>
-            {/* Calendar Grid - Rest of the code remains exactly the same */}
+
+            {/* Calendar Grid */}
             <div className="lg:flex lg:flex-auto lg:flex-col w-full max-w-[1344px] mx-auto">
               <div className="grid grid-cols-7 border-y border-l border-[#808080] text-center text-xs font-semibold leading-6 lg:flex-none">
                 <div className="border-r border-[#808080] py-2.5">Sun</div>
@@ -220,17 +247,19 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                           dayIdx === 0 ? colStartClasses[getDay(day)] : "",
                           !isEqual(day, selectedDay) &&
                           !isToday(day) &&
-                          !isSameMonth(day, firstDayCurrentMonth) ?
-                            "bg-accent/50 text-muted-foreground" : "",
-                          !isSelected &&
-                          !isCurrentDay &&
-                          !isInCurrentMonth ?
-                            "bg-accent/50 text-muted-foreground bg-[#E0E0E0]" : "",
+                          !isSameMonth(day, firstDayCurrentMonth)
+                            ? "bg-accent/50 text-muted-foreground"
+                            : "",
+                          !isSelected && !isCurrentDay && !isInCurrentMonth
+                            ? "bg-accent/50 text-muted-foreground bg-[#E0E0E0]"
+                            : "",
                           !isSelected ? "hover:bg-accent/75" : "",
                           isSelected ? "bg-[#FFF1DC]" : "",
                           "relative flex flex-col border-b border-r border-[#808080] hover:bg-muted focus:z-10",
-                          !isEqual(day, selectedDay) ? "hover:bg-accent/75" : ""
-                        ].filter(Boolean).join(" ")}
+                          !isEqual(day, selectedDay) ? "hover:bg-accent/75" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                       >
                         <header className="flex items-center justify-between p-2.5">
                           <div className="relative">
@@ -243,30 +272,34 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                                 isEqual(day, selectedDay) ? "text-primary-foreground" : "",
                                 !isEqual(day, selectedDay) &&
                                 !isToday(day) &&
-                                isSameMonth(day, firstDayCurrentMonth) ?
-                                  "text-foreground" : "",
+                                isSameMonth(day, firstDayCurrentMonth)
+                                  ? "text-foreground"
+                                  : "",
                                 !isEqual(day, selectedDay) &&
                                 !isToday(day) &&
-                                !isSameMonth(day, firstDayCurrentMonth) ?
-                                  "text-muted-foreground" : "",
-                                !isSelected &&
-                                !isCurrentDay &&
-                                isInCurrentMonth ?
-                                  "text-foreground" : "",
+                                !isSameMonth(day, firstDayCurrentMonth)
+                                  ? "text-muted-foreground"
+                                  : "",
+                                !isSelected && !isCurrentDay && isInCurrentMonth
+                                  ? "text-foreground"
+                                  : "",
                                 !isInCurrentMonth ? "text-muted-foreground" : "",
-                                isEqual(day, selectedDay) &&
-                                isToday(day) ?
-                                  "border bg-primary" : "",
-                                isEqual(day, selectedDay) &&
-                                !isToday(day) ?
-                                  "bg-foreground" : "",
-                                isEqual(day, selectedDay) ?
-                                  "font-semibold bg-[#6B3D3D] text-[#FFF1DC]" : "",
+                                isEqual(day, selectedDay) && isToday(day)
+                                  ? "border bg-primary"
+                                  : "",
+                                isEqual(day, selectedDay) && !isToday(day)
+                                  ? "bg-foreground"
+                                  : "",
+                                isEqual(day, selectedDay)
+                                  ? "font-semibold bg-[#6B3D3D] text-[#FFF1DC]"
+                                  : "",
                                 isToday(day) ? "font-semibold border border-black" : "",
                                 isInCurrentMonth ? "hover:border" : "",
                                 isBlocked ? "text-gray-500" : "",
-                                "flex h-7 w-7 items-center justify-center rounded-full text-xs relative z-10"
-                              ].filter(Boolean).join(" ")}
+                                "flex h-7 w-7 items-center justify-center rounded-full text-xs relative z-10",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
                             >
                               <time dateTime={format(day, "yyyy-MM-dd")}>
                                 {format(day, "d")}
@@ -283,7 +316,7 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                 <div className="isolate grid w-full grid-cols-7 grid-rows-5 lg:[400px] border-l border-[#808080] lg:hidden">
                   {days.map((day, dayIdx) => {
                     const isBlocked = blockedDates.some((d) => isSameDay(d, day));
-                    
+
                     return (
                       <button
                         onClick={() => handleDateClick(day)}
@@ -294,18 +327,23 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                           isEqual(day, selectedDay) ? "text-primary-foreground" : "",
                           !isEqual(day, selectedDay) &&
                           !isToday(day) &&
-                          isSameMonth(day, firstDayCurrentMonth) ?
-                            "text-foreground" : "",
+                          isSameMonth(day, firstDayCurrentMonth)
+                            ? "text-foreground"
+                            : "",
                           !isEqual(day, selectedDay) &&
                           !isToday(day) &&
-                          !isSameMonth(day, firstDayCurrentMonth) ?
-                            "text-muted-foreground" : "",
+                          !isSameMonth(day, firstDayCurrentMonth)
+                            ? "text-muted-foreground"
+                            : "",
                           !isSameMonth(day, firstDayCurrentMonth) ? "bg-[#E0E0E0]" : "",
-                          isEqual(day, selectedDay) ?
-                            "font-semibold text-[#FFF1DC] bg-[#6B3D3D]" : "",
+                          isEqual(day, selectedDay)
+                            ? "font-semibold text-[#FFF1DC] bg-[#6B3D3D]"
+                            : "",
                           isToday(day) ? "font-semibold border border-black" : "",
-                          "flex h-14 flex-col border-b border-r border-[#808080] px-3 py-2 hover:bg-muted focus:z-10 relative"
-                        ].filter(Boolean).join(" ")}
+                          "flex h-14 flex-col border-b border-r border-[#808080] px-3 py-2 hover:bg-muted focus:z-10 relative",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                       >
                         <div className="relative ml-auto">
                           {isBlocked && (
@@ -315,14 +353,16 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
                             dateTime={format(day, "yyyy-MM-dd")}
                             className={[
                               "flex size-6 items-center justify-center rounded-full relative z-10",
-                              isEqual(day, selectedDay) &&
-                              isToday(day) ?
-                                "bg-primary text-primary-foreground" : "",
-                              isEqual(day, selectedDay) &&
-                              !isToday(day) ?
-                                "bg-primary text-primary-foreground" : "",
-                              isBlocked ? "text-gray-500" : ""
-                            ].filter(Boolean).join(" ")}
+                              isEqual(day, selectedDay) && isToday(day)
+                                ? "bg-primary text-primary-foreground"
+                                : "",
+                              isEqual(day, selectedDay) && !isToday(day)
+                                ? "bg-primary text-primary-foreground"
+                                : "",
+                              isBlocked ? "text-gray-500" : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
                           >
                             {format(day, "d")}
                           </time>
@@ -338,13 +378,14 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
             <div className="flex justify-center mt-6 w-full">
               <button
                 onClick={toggleBlockDate}
+                disabled={isLoading}
                 className={
                   isSelectedBlocked
-                    ? "w-[200px] py-2 bg-[#f6e3c5] text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"
-                    : "w-[200px] py-2 bg-sidebar-1 text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"
+                    ? "w-[200px] py-2 bg-[#f6e3c5] text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all disabled:opacity-50"
+                    : "w-[200px] py-2 bg-sidebar-1 text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all disabled:opacity-50"
                 }
               >
-                {isSelectedBlocked ? "Unblock" : "Block"}
+                {isLoading ? "Processing..." : isSelectedBlocked ? "Unblock" : "Block"}
               </button>
             </div>
           </div>

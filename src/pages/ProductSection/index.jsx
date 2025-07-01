@@ -8,8 +8,11 @@ import Pagination from '../../components/ui/Pagination';
 import EditProductModal from '../edit-product-modal';
 import CreateProductModal from '../create-product-modal';
 import DeleteConfirmationModal from '../edit-product-modal/components/DeleteConfirmationModal';
-import FilterModal from '../edit-product-modal/components/FilterModalConfirmation'; // New import
+import FilterModal from '../edit-product-modal/components/FilterModalConfirmation';
 import { formatDate } from '../../utils/dateFormatter';
+import { useGetProducts } from '../../hooks/use-productlist';
+import { useDeleteProduct } from '../../hooks/use-delete-product';
+import { toast } from 'react-toastify';
 
 const ProductManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,124 +20,35 @@ const ProductManagement = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [filterModalOpen, setFilterModalOpen] = useState(false); // New state
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null); // New state
-  const [selectedStatus, setSelectedStatus] = useState(false); // New state
-  
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Chidiya',
-      category: 'Premium',
-      description: 'A beautiful premium product with elegant design and superior quality.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '6-Jun-25, 20:40',
-      lastUpdated: '6-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 2,
-      name: 'Jodha',
-      category: 'Luxe',
-      description: 'Luxurious item crafted with attention to detail and premium materials.',
-      files: Array(5).fill(null),
-      selectedOption: 1,
-      createdOn: '5-Jun-25, 20:40',
-      lastUpdated: '5-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 3,
-      name: 'Pari',
-      category: 'Luxe',
-      description: 'Exquisite luxury product featuring sophisticated design elements.',
-      files: Array(5).fill(null),
-      selectedOption: 2,
-      createdOn: '4-Jun-25, 20:40',
-      lastUpdated: '4-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 4,
-      name: 'Siya-Ram',
-      category: 'Premium',
-      description: 'Premium quality product with traditional charm and modern appeal.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '3-Jun-25, 20:40',
-      lastUpdated: '3-Jun-25, 20:40',
-      status: false
-    },
-    {
-      id: 5,
-      name: 'Parvati',
-      category: 'Premium',
-      description: 'Elegant premium product showcasing timeless beauty and craftsmanship.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '8-Jun-25, 20:40',
-      lastUpdated: '10-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 6,
-      name: 'Khwaab',
-      category: 'Luxe',
-      description: 'Dream-like luxury item with ethereal design and premium finish.',
-      files: Array(5).fill(null),
-      selectedOption: 1,
-      createdOn: '4-Jun-25, 20:40',
-      lastUpdated: '14-Jun-25, 20:40',
-      status: false
-    },
-    {
-      id: 7,
-      name: 'Lily Affair',
-      category: 'Premium',
-      description: 'Delicate premium product inspired by nature\'s beauty and elegance.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '12-Jun-25, 20:40',
-      lastUpdated: '15-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 8,
-      name: 'Morbagh',
-      category: 'Premium',
-      description: 'Premium collection item featuring rich heritage and modern aesthetics.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '12-Jun-25, 20:40',
-      lastUpdated: '15-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 9,
-      name: 'Malini',
-      category: 'Luxe',
-      description: 'Luxurious product embodying grace, style, and exceptional quality.',
-      files: Array(5).fill(null),
-      selectedOption: 1,
-      createdOn: '10-Jun-25, 20:40',
-      lastUpdated: '18-Jun-25, 20:40',
-      status: true
-    },
-    {
-      id: 10,
-      name: 'Radha-Krishna',
-      category: 'Premium',
-      description: 'Divine premium product celebrating eternal love and artistic excellence.',
-      files: Array(5).fill(null),
-      selectedOption: 0,
-      createdOn: '9-Jun-25, 20:40',
-      lastUpdated: '17-Jun-25, 20:40',
-      status: false
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(false);
+
+  const { data: fetchedData, isLoading, error, refetch } = useGetProducts(currentPage);
+  const deleteProductMutation = useDeleteProduct();
+
+  const products = fetchedData?.products?.map(product => ({
+    _id: product._id,
+    id: product._id,
+    name: product.name,
+    category: product.category,
+    description: product.description,
+    media: product.media || [],
+    selectedOption: product.primaryImageIndex || 0,
+    createdOn: formatDate(new Date(product.createdAt)),
+    lastUpdated: formatDate(new Date(product.updatedAt)),
+    status: product.status === "true"
+  })) || [];
+
+  const totalPages = fetchedData?.totalPages || 1;
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(`Error loading products: ${error.message}`);
     }
-  ]);
+  }, [error]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -146,23 +60,19 @@ const ProductManagement = () => {
   };
 
   const handleFilter = () => {
-    setFilterModalOpen(true); // Updated to open filter modal
+    setFilterModalOpen(true);
   };
 
   const handleStatusToggle = (productId, newStatus) => {
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === productId ? { ...product, status: newStatus } : product
-      )
-    );
+    console.log(`Status toggled for product ${productId} to ${newStatus}`);
   };
 
   const handleEdit = (productId) => {
     const product = products.find(p => p.id === productId);
     setSelectedProduct({
       ...product,
-      files: product.files || Array(5).fill(null),
-      selectedOption: product.selectedOption ?? null
+      files: product.media,
+      selectedOption: product.selectedOption
     });
     setEditModalOpen(true);
   };
@@ -173,11 +83,16 @@ const ProductManagement = () => {
   };
 
   const confirmDelete = () => {
-    setProducts(prevProducts =>
-      prevProducts.filter(product => product.id !== productToDelete)
-    );
-    setDeleteModalOpen(false);
-    setProductToDelete(null);
+    deleteProductMutation.mutate(productToDelete, {
+      onSuccess: () => {
+        toast.success('Product deleted successfully');
+        refetch();
+        setDeleteModalOpen(false);
+      },
+      onError: (error) => {
+        toast.error(`Delete failed: ${error.message}`);
+      }
+    });
   };
 
   const handlePageChange = (page) => {
@@ -185,23 +100,18 @@ const ProductManagement = () => {
   };
 
   const handleProductCreate = (newProduct) => {
-    setProducts(prevProducts => [newProduct, ...prevProducts]);
+    refetch().then(() => {
+      toast.success(`${newProduct.name} created successfully!`);
+      setCreateModalOpen(false);
+    });
   };
 
   const handleProductUpdate = (updatedProduct) => {
-    setProducts(prevProducts => 
-      prevProducts.map(p => 
-        p.id === updatedProduct.id ? {
-          ...updatedProduct,
-          lastUpdated: formatDate(new Date())
-        } : p
-      )
-    );
+    refetch();
+    toast.success(`${updatedProduct.name} updated successfully!`);
     setEditModalOpen(false);
-    setSelectedProduct(null);
   };
 
-  // New filter handlers
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
   };
@@ -220,37 +130,52 @@ const ProductManagement = () => {
     setCurrentPage(1);
   };
 
-  // Updated filteredProducts calculation with new filters
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
     const matchesStatus = selectedStatus ? product.status === true : true;
-    
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const productsPerPage = 8;
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen w-full bg-global-1">
+        <Header />
+        <div className="flex flex-row flex-1 min-h-0">
+          <Sidebar />
+          <div className="flex flex-col flex-1 p-6 bg-global-1 items-center justify-center">
+            <div className="text-global-2 font-lora text-xl">Loading products...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const isPage7WithNoData = currentPage === 7 && currentProducts.length === 0;
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen w-full bg-global-1">
+        <Header />
+        <div className="flex flex-row flex-1 min-h-0">
+          <Sidebar />
+          <div className="flex flex-col flex-1 p-6 bg-global-1 items-center justify-center">
+            <div className="text-red-500 font-lora text-xl">Error loading products</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-global-1">
       <Header />
-      
       <div className="flex flex-row flex-1 min-h-0">
         <Sidebar />
-        
         <div className="flex flex-col flex-1 p-6 bg-global-1">
           <div className="flex flex-row items-center justify-between mb-6">
             <SearchView 
               placeholder="Search by Product"
               onSearch={handleSearch}
             />
-            
             <div className="flex flex-row items-center space-x-4">
               <img 
                 src="/images/img_iconoirfilter.svg" 
@@ -258,7 +183,6 @@ const ProductManagement = () => {
                 className="h-[35px] w-[35px] cursor-pointer hover:opacity-80"
                 onClick={handleFilter}
               />
-              
               <Button
                 onClick={handleNewProduct}
                 icon="/images/img_mynauiplus.svg"
@@ -292,13 +216,13 @@ const ProductManagement = () => {
             </div>
 
             <div className="flex flex-col">
-              {isPage7WithNoData ? (
+              {filteredProducts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-400 rounded-[10px]">
                   <div className="text-gray-500 font-lora text-lg mb-2">No products found</div>
                   <div className="text-gray-400 font-lora text-sm">There are no products to display on this page.</div>
                 </div>
               ) : (
-                currentProducts.map((product) => (
+                filteredProducts.map((product) => (
                   <div key={product.id} className="flex flex-row items-center h-16 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
                     <div className="flex-1 text-center">
                       <span className="text-global-2 font-lora text-base leading-5">{product.name}</span>
@@ -372,9 +296,9 @@ const ProductManagement = () => {
         }}
         onConfirm={confirmDelete}
         productName={products.find(p => p.id === productToDelete)?.name || ''}
+        isDeleting={deleteProductMutation.isLoading}
       />
 
-      {/* New Filter Modal */}
       <FilterModal
         isOpen={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
