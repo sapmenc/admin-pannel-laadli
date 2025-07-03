@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ModalOverlay from './FilterModal';
 
 const FilterModal = ({ 
@@ -16,6 +16,20 @@ const FilterModal = ({
     onStatusChange(newValue);
   };
 
+  const handleApply = () => {
+    // Call the parent handler with current selections
+    onApply({
+      category: selectedCategory,
+      status: selectedStatus,
+    });
+    onClose(); // Optionally close modal after apply
+  };
+
+  const handleClearAndClose = () => {
+    onClear();   // Clear filters
+    onClose();   // Close modal
+  };
+
   return (
     <ModalOverlay isOpen={isOpen} onClose={onClose}>
       <div className="p-6 bg-white rounded-lg max-w-xs text-global-2 text-2xl font-bellefair">
@@ -24,29 +38,29 @@ const FilterModal = ({
           <div className="flex items-center gap-5">
             <h3 className=" ">Category</h3>
             <div className="flex gap-8">
-  <label className="flex items-center space-x-2 cursor-pointer">
-    <input
-      type="radio"
-      name="category"
-      value="Luxe"
-      checked={selectedCategory === 'Luxe'}
-      onChange={() => onCategoryChange('Luxe')}
-      className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
-    />
-    <span className="">Luxe</span>
-  </label>
-  <label className="flex items-center space-x-2 cursor-pointer">
-    <input
-      type="radio"
-      name="category"
-      value="Premium"
-      checked={selectedCategory === 'Premium'}
-      onChange={() => onCategoryChange('Premium')}
-      className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
-    />
-    <span className="">Premium</span>
-  </label>
-</div>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="category"
+                  value="Luxe"
+                  checked={selectedCategory === 'Luxe'}
+                  onChange={() => onCategoryChange('Luxe')}
+                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
+                />
+                <span className="">Luxe</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="category"
+                  value="Premium"
+                  checked={selectedCategory === 'Premium'}
+                  onChange={() => onCategoryChange('Premium')}
+                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
+                />
+                <span className="">Premium</span>
+              </label>
+            </div>
           </div>
 
           {/* Status Filter */}
@@ -84,13 +98,13 @@ const FilterModal = ({
           {/* Action Buttons */}
           <div className="flex justify-between pt-6 gap-6">
             <button
-              onClick={onClear}
+              onClick={handleClearAndClose}
               className="w-full py-3 bg-[#f6e3c5] text-sidebar-1 font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"
             >
               Clear
             </button>
             <button
-              onClick={onApply}
+              onClick={handleApply}
               className="w-full py-3 bg-sidebar-1 text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-sidebar-1 hover:bg-sidebar-1-dark hover:shadow-lg transition-all"
             >
               Apply

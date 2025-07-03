@@ -23,12 +23,11 @@ const AdminLogin = () => {
     }
   };
 
-  // Determine if email or password has at least one character
   const isTyping = email.length > 0 || password.length > 0;
 
   return (
     <div className="flex flex-col gap-10 items-center justify-center min-h-screen bg-[#fdf1dd] px-4">
-      
+
       {/* Error Toast */}
       {errorMsg && (
         <div className="flex items-center justify-center bg-[#f8d7da] text-[#a94442] border border-[#a94442] px-4 py-2 p-5 rounded-md shadow-md w-[250px]">

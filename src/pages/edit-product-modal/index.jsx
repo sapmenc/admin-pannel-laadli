@@ -33,7 +33,9 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
         category: product.category || 'Premium',
         description: product.description || ''
       });
-      setFiles(product.media || Array(5).fill(null));
+      const media = product.media || [];
+      const paddedMedia = [...media, ...Array(5 - media.length).fill(null)].slice(0, 5);
+      setFiles(paddedMedia);
       setSelectedOption(product.selectedOption ?? null);
     }
   }, [product, isOpen]);
@@ -85,7 +87,9 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
         category: product.category || 'Premium',
         description: product.description || ''
       });
-      setFiles(product.media || Array(5).fill(null));
+      const media = product.media || [];
+      const paddedMedia = [...media, ...Array(5 - media.length).fill(null)].slice(0, 5);
+      setFiles(paddedMedia);
       setSelectedOption(product.selectedOption ?? null);
     }
     setErrors({});
@@ -116,7 +120,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               placeholder="Product Name"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className={`w-full rounded-xl border ${
+              className={`w-full rounded-md border ${
                 errors.name ? 'border-red-500' : 'border-[var(--global-text-2)]'
               } px-4 py-3 bg-white text-base font-lora placeholder:text-[var(--global-text-2)] text-[var(--global-text-2)]`}
               disabled={isLoading}
@@ -126,7 +130,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
             <select
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
-              className="w-full rounded-xl border border-[var(--global-text-2)] px-4 py-3 bg-white text-base font-lora text-[var(--global-text-2)]"
+              className="w-full rounded-md border border-[var(--global-text-2)] px-4 py-3 bg-white text-base font-lora text-[var(--global-text-2)]"
               disabled={isLoading}
             >
               <option value="Premium">Premium</option>
@@ -137,8 +141,8 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               placeholder="Description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              rows={4}
-              className={`w-full rounded-xl border ${
+              rows={6}
+              className={`w-full rounded-md border ${
                 errors.description ? 'border-red-500' : 'border-[var(--global-text-2)]'
               } px-4 py-3 bg-white text-base font-lora placeholder:text-[var(--global-text-2)] text-[var(--global-text-2)] resize-vertical`}
               disabled={isLoading}
@@ -146,7 +150,11 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
             {errors.description && <span className="text-red-500 text-sm">{errors.description}</span>}
 
             <div className="border border-[var(--global-text-2)] bg-[#fff8f0] text-[var(--global-text-2)] text-sm font-lora rounded-lg p-3">
-              Note: Please optimize image and video assets to improve site loading speed.
+              Note: Please optimize image and video assets to improve site loading speed. Use{' '}
+              <a href="https://cloudconvert.com" target="_blank" rel="noopener noreferrer" className="underline">
+                CloudConvert
+              </a>{' '}
+              to reduce file sizes.
             </div>
           </div>
 
@@ -154,24 +162,29 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
           <div className="hidden md:block border-r border-[#A0A0A0] mx-4 opacity-60"></div>
 
           {/* Right Column - File Uploads */}
-          <div className="grid grid-cols-2 gap-4">
-            {files.map((file, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <input
-                  type="radio"
-                  name="primaryFile"
-                  checked={selectedOption === index}
-                  onChange={() => setSelectedOption(index)}
-                  className="accent-[var(--global-text-2)] mt-3"
-                  disabled={isLoading}
-                />
-                <FileUploadSection
-                  onFileSelect={(file) => handleFileSelect(index, file)}
-                  selectedFile={file}
-                  disabled={isLoading}
-                />
-              </div>
-            ))}
+          <div className='flex flex-col gap-4 w-full'>
+            <div className="border border-[var(--global-text-2)] bg-[#fff8f0] text-[var(--global-text-2)] text-sm font-lora rounded-lg p-3">
+            Note : First Image will be default selected as Main Cover Image of Product.
+            </div>
+            <div className="grid grid-cols-2 gap-2 gap-y-3">
+              {files.map((file, index) => (
+                <div key={index} className="flex items-start space-x-0">
+                  <input
+                    type="hidden"
+                    name="primaryFile"
+                    checked={selectedOption === index}
+                    onChange={() => setSelectedOption(index)}
+                    className="accent-[var(--global-text-2)] mt-3"
+                    disabled={isLoading}
+                  />
+                  <FileUploadSection
+                    onFileSelect={(file) => handleFileSelect(index, file)}
+                    selectedFile={file}
+                    disabled={isLoading}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

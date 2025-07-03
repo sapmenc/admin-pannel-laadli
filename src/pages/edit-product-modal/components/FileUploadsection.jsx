@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import upload_icon from '../../../../public/images/upload_icons.png'; // Ensure correct path and file extension
+
 
 const FileUploadSection = ({ onFileSelect, selectedFile }) => {
   const [previewURL, setPreviewURL] = useState(null);
@@ -28,6 +28,11 @@ const FileUploadSection = ({ onFileSelect, selectedFile }) => {
   const handleChange = (e) => {
     const file = e.target.files[0];
     if (file) onFileSelect(file);
+  };
+
+  const handleClear = (e) => {
+    e.stopPropagation();
+    onFileSelect(null); // Reset file on click
   };
 
   const getFileType = () => {
@@ -82,19 +87,28 @@ const FileUploadSection = ({ onFileSelect, selectedFile }) => {
   };
 
   return (
-    <div className="w-[140px] h-[80px] bg-[#F7F7F7] border border-[var(--global-text-2)] rounded-xl flex items-center justify-center relative overflow-hidden bg-[#d1cdc2]">
+    <div className="w-[200px] h-[100px] bg-[#F7F7F7] border border-[var(--global-text-2)] rounded-xl flex items-center justify-center relative overflow-hidden">
       <input
         type="file"
         accept="image/*,video/*"
         onChange={handleChange}
         className="absolute inset-0 opacity-0 cursor-pointer"
       />
+
       {previewURL ? (
-        renderPreview()
+        <>
+          {renderPreview()}
+          <button
+            className="absolute top-1 right-1 bg-white text-[#4b2b2b] rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow hover:bg-gray-100 z-10"
+            onClick={handleClear}
+          >
+            ✕
+          </button>
+        </>
       ) : (
         <div className="text-[#64625d] font-lora text-center px-2 text-sm">
           <div className="flex flex-col items-center">
-            <img src={upload_icon} alt="Upload Icon" className="w-10 h-10 mb-1" />
+            <img src='images/upload_icons.png' alt="Upload Icon" className="w-14 h-15 mb-1" />
             <span>Upload your file</span>
           </div>
         </div>

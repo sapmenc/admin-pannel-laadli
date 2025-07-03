@@ -4,7 +4,7 @@ import { BASE_URL } from '@/config/api';
 const deleteProductAPI = async (productId) => {
   const response = await fetch(`${BASE_URL}/products/${productId}`, {
     method: 'DELETE',
-    credentials: 'include', // Important for cookie-based auth
+    credentials: 'include', 
     headers: {
       'Content-Type': 'application/json',
     },
@@ -29,7 +29,7 @@ export const useDeleteProduct = () => {
       // Invalidate all products queries to refetch updated list
       queryClient.invalidateQueries(['products']);
       
-      // Optimistically remove the deleted product from cache
+      
       queryClient.setQueryData(['products'], (oldData) => {
         if (!oldData) return oldData;
         

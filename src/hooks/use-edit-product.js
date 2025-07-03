@@ -10,7 +10,7 @@ const updateProductAPI = async ({ id, updates, files }) => {
   try {
     const formData = new FormData();
 
-    // 1. Handle non-file updates
+   
     Object.entries(updates).forEach(([key, value]) => {
       if (value === undefined || value === null) {
         console.warn(`⚠️ Skipping ${key} because value is undefined/null`);
@@ -37,7 +37,7 @@ const updateProductAPI = async ({ id, updates, files }) => {
     // 3. API call
     console.log('🚀 Sending PATCH request...');
     const response = await fetch(`${BASE_URL}/products/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       credentials: 'include',
       body: formData,
     });
@@ -70,16 +70,16 @@ export const useUpdateProduct = (options = {}) => {
     mutationFn: updateProductAPI,
     ...options,
     
-    // ===== Optimistic Update =====
+  
     onMutate: async (variables) => {
       console.groupCollapsed('🔄 useUpdateProduct optimistic update');
       try {
         // Cancel outgoing refetches
         await queryClient.cancelQueries(['product', variables.id]);
         
-        // Snapshot previous value
+        
         const previousProduct = queryClient.getQueryData(['product', variables.id]);
-        console.log('📸 Previous product data:', previousProduct);
+       
 
         // Optimistically update cache
         queryClient.setQueryData(['product', variables.id], (old) => ({
@@ -106,24 +106,23 @@ export const useUpdateProduct = (options = {}) => {
         context
       });
 
-      // Rollback optimistic update
       if (context?.previousProduct) {
         console.log('↩️ Rolling back optimistic update');
         queryClient.setQueryData(['product', variables.id], context.previousProduct);
       }
 
-      // Additional error handling from options
+    
       options.onError?.(error, variables, context);
       console.groupEnd();
     },
 
-    // ===== Success/Settled Handling =====
+  
     onSuccess: (data, variables, context) => {
       console.group('✅ useUpdateProduct success');
       console.log('Updated product data:', data);
       console.log('Mutation variables:', variables);
       
-      // Invalidate related queries
+      
       queryClient.invalidateQueries(['products']);
       queryClient.invalidateQueries(['product', variables.id]);
       

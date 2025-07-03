@@ -12,6 +12,7 @@ import FilterModal from '../edit-product-modal/components/FilterModalConfirmatio
 import { formatDate } from '../../utils/dateFormatter';
 import { useGetProducts } from '../../hooks/use-productlist';
 import { useDeleteProduct } from '../../hooks/use-delete-product';
+import { useToggleProductStatus } from '../../hooks/use-changestatus';
 import { toast } from 'react-toastify';
 
 const ProductManagement = () => {
@@ -25,9 +26,12 @@ const ProductManagement = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(false);
+  const [tempCategory, setTempCategory] = useState(null);
+  const [tempStatus, setTempStatus] = useState(false);
 
   const { data: fetchedData, isLoading, error, refetch } = useGetProducts(currentPage);
   const deleteProductMutation = useDeleteProduct();
+  const toggleStatusMutation = useToggleProductStatus();
 
   const products = fetchedData?.products?.map(product => ({
     _id: product._id,
@@ -39,7 +43,7 @@ const ProductManagement = () => {
     selectedOption: product.primaryImageIndex || 0,
     createdOn: formatDate(new Date(product.createdAt)),
     lastUpdated: formatDate(new Date(product.updatedAt)),
-    status: product.status === "true"
+    status: product.status  // make sure status is boolean 
   })) || [];
 
   const totalPages = fetchedData?.totalPages || 1;
@@ -60,11 +64,13 @@ const ProductManagement = () => {
   };
 
   const handleFilter = () => {
+    setTempCategory(selectedCategory);
+    setTempStatus(selectedStatus);
     setFilterModalOpen(true);
   };
 
-  const handleStatusToggle = (productId, newStatus) => {
-    console.log(`Status toggled for product ${productId} to ${newStatus}`);
+  const handleStatusToggle = (productId) => {
+    toggleStatusMutation.mutate(productId);
   };
 
   const handleEdit = (productId) => {
@@ -125,7 +131,9 @@ const ProductManagement = () => {
     setSelectedStatus(false);
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = ({ category, status }) => {
+    setSelectedCategory(category);
+    setSelectedStatus(status);
     setFilterModalOpen(false);
     setCurrentPage(1);
   };
@@ -172,22 +180,15 @@ const ProductManagement = () => {
         <Sidebar />
         <div className="flex flex-col flex-1 p-6 bg-global-1">
           <div className="flex flex-row items-center justify-between mb-6">
-            <SearchView 
-              placeholder="Search by Product"
-              onSearch={handleSearch}
-            />
+            <SearchView placeholder="Search by Product" onSearch={handleSearch} />
             <div className="flex flex-row items-center space-x-4">
-              <img 
-                src="/images/img_iconoirfilter.svg" 
-                alt="Filter" 
+              <img
+                src="/images/img_iconoirfilter.svg"
+                alt="Filter"
                 className="h-[35px] w-[35px] cursor-pointer hover:opacity-80"
                 onClick={handleFilter}
               />
-              <Button
-                onClick={handleNewProduct}
-                icon="/images/img_mynauiplus.svg"
-                className="w-[224px]"
-              >
+              <Button onClick={handleNewProduct} icon="/images/img_mynauiplus.svg" className="w-[224px]">
                 New Product
               </Button>
             </div>
@@ -195,24 +196,11 @@ const ProductManagement = () => {
 
           <div className="flex flex-col mb-6 flex-1 space-y-2">
             <div className="flex flex-row items-center h-16 bg-table-1 border border-gray-400 rounded-[10px] px-4">
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Product</span>
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Category</span>
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Created On</span>
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Last Updated</span>
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Status</span>
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-global-2 font-bellefair text-2xl leading-8">Actions</span>
-              </div>
+              {['Product', 'Category', 'Created On', 'Last Updated', 'Status', 'Actions'].map((text, i) => (
+                <div key={i} className="flex-1 text-center">
+                  <span className="text-global-2 font-bellefair text-2xl leading-8">{text}</span>
+                </div>
+              ))}
             </div>
 
             <div className="flex flex-col">
@@ -224,37 +212,16 @@ const ProductManagement = () => {
               ) : (
                 filteredProducts.map((product) => (
                   <div key={product.id} className="flex flex-row items-center h-16 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
-                    <div className="flex-1 text-center">
-                      <span className="text-global-2 font-lora text-base leading-5">{product.name}</span>
-                    </div>
-                    <div className="flex-1 text-center">
-                      <span className="text-global-2 font-lora text-base leading-5">{product.category}</span>
-                    </div>
-                    <div className="flex-1 text-center">
-                      <span className="text-global-2 font-lora text-base leading-5">{product.createdOn}</span>
-                    </div>
-                    <div className="flex-1 text-center">
-                      <span className="text-global-2 font-lora text-base leading-5">{product.lastUpdated}</span>
-                    </div>
+                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.name}</span></div>
+                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.category}</span></div>
+                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.createdOn}</span></div>
+                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.lastUpdated}</span></div>
                     <div className="flex-1 flex justify-center">
-                      <Switch 
-                        checked={product.status}
-                        onChange={(newStatus) => handleStatusToggle(product.id, newStatus)}
-                      />
+                      <Switch checked={product.status} onChange={() => handleStatusToggle(product.id)} />
                     </div>
                     <div className="flex-1 flex justify-center items-center space-x-2">
-                      <img 
-                        src="/images/img_mdipencil.svg" 
-                        alt="Edit" 
-                        className="h-[30px] w-[30px] cursor-pointer hover:opacity-80"
-                        onClick={() => handleEdit(product.id)}
-                      />
-                      <img 
-                        src="/images/img_magetrashfill.svg" 
-                        alt="Delete" 
-                        className="h-[35px] w-[35px] cursor-pointer hover:opacity-80"
-                        onClick={() => handleDelete(product.id)}
-                      />
+                      <img src="/images/img_mdipencil.svg" alt="Edit" className="h-[30px] w-[30px] cursor-pointer hover:opacity-80" onClick={() => handleEdit(product.id)} />
+                      <img src="/images/img_magetrashfill.svg" alt="Delete" className="h-[35px] w-[35px] cursor-pointer hover:opacity-80" onClick={() => handleDelete(product.id)} />
                     </div>
                   </div>
                 ))
@@ -263,11 +230,7 @@ const ProductManagement = () => {
           </div>
 
           <div className="flex justify-center bg-global-1 py-4">
-            <Pagination 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>
         </div>
       </div>
@@ -281,7 +244,7 @@ const ProductManagement = () => {
         product={selectedProduct}
         onProductUpdate={handleProductUpdate}
       />
-      
+
       <CreateProductModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
@@ -304,10 +267,10 @@ const ProductManagement = () => {
         onClose={() => setFilterModalOpen(false)}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-        selectedStatus={selectedStatus}
-        onStatusChange={handleStatusChange}
+        selectedCategory={tempCategory}
+        onCategoryChange={setTempCategory}
+        selectedStatus={tempStatus}
+        onStatusChange={setTempStatus}
       />
     </div>
   );

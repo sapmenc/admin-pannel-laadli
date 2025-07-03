@@ -188,31 +188,35 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
             )}
 
             {/* Calendar Header with current date between arrows */}
-            <div className="inline-flex border-2 p-2 border-black w-full mb-4 -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
+            <div className="flex justify-end mb-1 mr-1">
+            <div className="inline-flex border-2 p-2 border-[#808080] w-full mb-4 -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
               <Button
                 onClick={previousMonth}
                 disabled={disablePrev}
-                className="rounded-none pr-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-[#060505] focus-visible:z-10"
+                className="rounded-none mr-2 pr-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-2 border-r-[#] focus-visible:z-10 border-l-0 border-t-0 border-b-0"
                 size="icon"
                 aria-label="Navigate to previous month"
               >
                 <ChevronLeftIcon size={16} strokeWidth={2} aria-hidden="true" />
               </Button>
+              
               <Button
-                className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#000000] focus-visible:z-10 md:w-auto cursor-default"
+                className="w-full pr-2 mr-2 rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg border-[#000000] focus-visible:z-10 md:w-auto cursor-default"
                 variant="outline"
               >
                 {format(selectedDay, "MMM dd, yyyy")}
               </Button>
+             
               <Button
                 onClick={nextMonth}
-                className="rounded-none pl-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-[#808080] focus-visible:z-10"
+                className="rounded-none  pl-2  shadow-none first:rounded-s-lg last:rounded-e-lg border-2 border-l-[#808080] focus-visible:z-10 border-r-0 border-t-0 border-b-0 "
                 variant="outline"
                 size="icon"
                 aria-label="Navigate to next month"
               >
                 <ChevronRightIcon size={16} strokeWidth={2} aria-hidden="true" />
               </Button>
+            </div>
             </div>
 
             {/* Calendar Grid */}

@@ -4,7 +4,7 @@ import { BASE_URL } from '@/config/api';
 const getProductsAPI = async (page) => {
   const response = await fetch(`${BASE_URL}/products?page=${page}`, {
     method: 'GET',
-    credentials: 'include', // Important for cookie-based auth
+    credentials: 'include', 
     headers: {
       'Content-Type': 'application/json',
     },

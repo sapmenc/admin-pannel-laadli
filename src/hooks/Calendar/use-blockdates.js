@@ -3,11 +3,11 @@ import { BASE_URL } from '@/config/api';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { toast } from 'react-toastify';
 
-// Helper functions
+// fixed the date format
 const formatDate = (date) => format(date, 'yyyy-MM-dd');
 const parseDate = (dateStr) => parseISO(dateStr);
 
-// Fetch API
+// Fetch API here                                              
 const fetchBlockDates = async () => {
   const response = await fetch(`${BASE_URL}/blockdates`, {
     method: 'GET',
@@ -121,6 +121,6 @@ export const useBlockedDates = () => {
     setAllBlockedDates,
     addBlockedDate,
     removeBlockedDate,
-    toggleBlockDate, // ✅ expose it
+    toggleBlockDate, 
   };
 };
