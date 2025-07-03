@@ -154,7 +154,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               <a href="https://cloudconvert.com" target="_blank" rel="noopener noreferrer" className="underline">
                 CloudConvert
               </a>{' '}
-              to reduce file sizes.
+              tool to convert images & Video to Webp & Webm format respectively.
             </div>
           </div>
 

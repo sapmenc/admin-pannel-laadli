@@ -87,7 +87,7 @@ const FileUploadSection = ({ onFileSelect, selectedFile }) => {
   };
 
   return (
-    <div className="w-[200px] h-[100px] bg-[#F7F7F7] border border-[var(--global-text-2)] rounded-xl flex items-center justify-center relative overflow-hidden">
+    <div className="w-[170px] h-[100px] bg-[#F7F7F7] border border-[var(--global-text-2)] rounded-xl flex items-center justify-center relative overflow-hidden">
       <input
         type="file"
         accept="image/*,video/*"
