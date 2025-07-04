@@ -11,32 +11,36 @@ const FilterModal = ({
   selectedStatus,
   onStatusChange
 }) => {
+
+  
+
   const handleToggle = () => {
-    const newValue = !selectedStatus;
+    const newValue = !(selectedStatus === true);
     onStatusChange(newValue);
   };
 
   const handleApply = () => {
-    // Call the parent handler with current selections
     onApply({
       category: selectedCategory,
-      status: selectedStatus,
+      status: selectedStatus || false,
     });
-    onClose(); // Optionally close modal after apply
+    onClose();
   };
+  
 
   const handleClearAndClose = () => {
-    onClear();   // Clear filters
-    onClose();   // Close modal
+    onClear();
+    onClose();
   };
 
   return (
     <ModalOverlay isOpen={isOpen} onClose={onClose}>
       <div className="p-6 bg-white rounded-lg max-w-xs text-global-2 text-2xl font-bellefair">
         <div className="space-y-8">
+
           {/* Category Filter */}
           <div className="flex items-center gap-5">
-            <h3 className=" ">Category</h3>
+            <h3>Category</h3>
             <div className="flex gap-8">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -45,9 +49,9 @@ const FilterModal = ({
                   value="Luxe"
                   checked={selectedCategory === 'Luxe'}
                   onChange={() => onCategoryChange('Luxe')}
-                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
+                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b] checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
                 />
-                <span className="">Luxe</span>
+                <span>Luxe</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -56,22 +60,22 @@ const FilterModal = ({
                   value="Premium"
                   checked={selectedCategory === 'Premium'}
                   onChange={() => onCategoryChange('Premium')}
-                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b]  checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
+                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b] checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
                 />
-                <span className="">Premium</span>
+                <span>Premium</span>
               </label>
             </div>
           </div>
 
           {/* Status Filter */}
           <div className="flex items-center gap-5">
-            <h3 className="">Status</h3>
+            <h3>Status</h3>
             <div className="flex items-center space-x-2">
               <div 
                 className="relative h-[35px] w-[35px] cursor-pointer"
                 onClick={handleToggle}
               >
-                {selectedStatus ? (
+                {selectedStatus === true ? (
                   <img 
                     src="/images/img_famiconstoggle.svg" 
                     alt="Toggle On" 
@@ -92,6 +96,7 @@ const FilterModal = ({
                   </div>
                 )}
               </div>
+  
             </div>
           </div>
 
@@ -110,6 +115,7 @@ const FilterModal = ({
               Apply
             </button>
           </div>
+
         </div>
       </div>
     </ModalOverlay>

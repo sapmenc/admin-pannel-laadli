@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// ProductManagement.jsx
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import SearchView from '../../components/ui/SearchView';
@@ -25,9 +26,9 @@ const ProductManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const [tempCategory, setTempCategory] = useState(null);
-  const [tempStatus, setTempStatus] = useState(false);
+  const [tempStatus, setTempStatus] = useState(null);
 
   const { data: fetchedData, isLoading, error, refetch } = useGetProducts(currentPage);
   const deleteProductMutation = useDeleteProduct();
@@ -43,12 +44,12 @@ const ProductManagement = () => {
     selectedOption: product.primaryImageIndex || 0,
     createdOn: formatDate(new Date(product.createdAt)),
     lastUpdated: formatDate(new Date(product.updatedAt)),
-    status: product.status  // make sure status is boolean 
+    status: product.status
   })) || [];
 
   const totalPages = fetchedData?.totalPages || 1;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       toast.error(`Error loading products: ${error.message}`);
     }
@@ -59,9 +60,7 @@ const ProductManagement = () => {
     setCurrentPage(1);
   };
 
-  const handleNewProduct = () => {
-    setCreateModalOpen(true);
-  };
+  const handleNewProduct = () => setCreateModalOpen(true);
 
   const handleFilter = () => {
     setTempCategory(selectedCategory);
@@ -69,17 +68,11 @@ const ProductManagement = () => {
     setFilterModalOpen(true);
   };
 
-  const handleStatusToggle = (productId) => {
-    toggleStatusMutation.mutate(productId);
-  };
+  const handleStatusToggle = (productId) => toggleStatusMutation.mutate(productId);
 
   const handleEdit = (productId) => {
     const product = products.find(p => p.id === productId);
-    setSelectedProduct({
-      ...product,
-      files: product.media,
-      selectedOption: product.selectedOption
-    });
+    setSelectedProduct({ ...product, files: product.media });
     setEditModalOpen(true);
   };
 
@@ -101,9 +94,7 @@ const ProductManagement = () => {
     });
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page) => setCurrentPage(page);
 
   const handleProductCreate = (newProduct) => {
     refetch().then(() => {
@@ -118,17 +109,9 @@ const ProductManagement = () => {
     setEditModalOpen(false);
   };
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-  };
-
-  const handleStatusChange = (status) => {
-    setSelectedStatus(status);
-  };
-
   const handleClearFilters = () => {
     setSelectedCategory(null);
-    setSelectedStatus(false);
+    setSelectedStatus(null);
   };
 
   const handleApplyFilters = ({ category, status }) => {
@@ -141,37 +124,9 @@ const ProductManagement = () => {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
-    const matchesStatus = selectedStatus ? product.status === true : true;
+    const matchesStatus = typeof selectedStatus === 'boolean' ? product.status === selectedStatus : true;
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen w-full bg-global-1">
-        <Header />
-        <div className="flex flex-row flex-1 min-h-0">
-          <Sidebar />
-          <div className="flex flex-col flex-1 p-6 bg-global-1 items-center justify-center">
-            <div className="text-global-2 font-lora text-xl">Loading products...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col min-h-screen w-full bg-global-1">
-        <Header />
-        <div className="flex flex-row flex-1 min-h-0">
-          <Sidebar />
-          <div className="flex flex-col flex-1 p-6 bg-global-1 items-center justify-center">
-            <div className="text-red-500 font-lora text-xl">Error loading products</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-global-1">

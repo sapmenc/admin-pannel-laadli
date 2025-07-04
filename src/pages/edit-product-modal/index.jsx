@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useUpdateProduct } from '../../hooks/use-edit-product';
 import ModalOverlay from './components/ModalOverlay';
 import FileUploadSection from './components/FileUploadsection';
@@ -25,20 +25,49 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
   const [files, setFiles] = useState(Array(5).fill(null));
   const [selectedOption, setSelectedOption] = useState(null);
   const [errors, setErrors] = useState({});
+  const [initialState, setInitialState] = useState(null);
 
   useEffect(() => {
-    if (product) {
-      setFormData({
+    if (product && isOpen) {
+      const initialFormData = {
         name: product.name || '',
         category: product.category || 'Premium',
         description: product.description || ''
-      });
+      };
+
       const media = product.media || [];
       const paddedMedia = [...media, ...Array(5 - media.length).fill(null)].slice(0, 5);
+
+      setFormData(initialFormData);
       setFiles(paddedMedia);
       setSelectedOption(product.selectedOption ?? null);
+      setInitialState({
+        formData: initialFormData,
+        files: paddedMedia,
+        selectedOption: product.selectedOption ?? null
+      });
     }
   }, [product, isOpen]);
+
+  const hasChanges = useMemo(() => {
+    if (!initialState) return false;
+
+    const formChanged = Object.keys(formData).some(
+      key => formData[key] !== initialState.formData[key]
+    );
+
+    const filesChanged = files.some((file, index) => {
+      const initialFile = initialState.files[index];
+      if (!file && !initialFile) return false;
+      if (!file || !initialFile) return true;
+      if (file instanceof File || initialFile instanceof File) return true;
+      return file !== initialFile; // file is a string (URL)
+    });
+
+    const optionChanged = selectedOption !== initialState.selectedOption;
+
+    return formChanged || filesChanged || optionChanged;
+  }, [formData, files, selectedOption, initialState]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,13 +94,15 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
     const updates = {
       ...formData,
       selectedOption,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      media: files
+        .map(file => (typeof file === 'string' ? file : null))
+        .filter(Boolean)
     };
 
-    // Filter out null files but keep existing URLs
-    const filesToUpload = files.map(file => 
-      file instanceof File ? file : null
-    ).filter(Boolean);
+    const filesToUpload = files
+      .map(file => (file instanceof File ? file : null))
+      .filter(Boolean);
 
     updateProduct({
       id: product._id,
@@ -113,7 +144,6 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8">
-          {/* Left Column - Form Fields */}
           <div className="space-y-4">
             <input
               type="text"
@@ -158,23 +188,21 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
             </div>
           </div>
 
-          {/* Middle Divider */}
           <div className="hidden md:block border-r border-[#A0A0A0] mx-4 opacity-60"></div>
 
-          {/* Right Column - File Uploads */}
           <div className='flex flex-col gap-4 w-full'>
             <div className="border border-[var(--global-text-2)] bg-[#fff8f0] text-[var(--global-text-2)] text-sm font-lora rounded-lg p-3">
-            Note : First Image will be default selected as Main Cover Image of Product.
+              Note: First Image will be selected as Main Cover Image of Product.
             </div>
             <div className="grid grid-cols-2 gap-2 gap-y-3">
               {files.map((file, index) => (
                 <div key={index} className="flex items-start space-x-0">
                   <input
-                    type="hidden"
+                    type="radio"
                     name="primaryFile"
                     checked={selectedOption === index}
                     onChange={() => setSelectedOption(index)}
-                    className="accent-[var(--global-text-2)] mt-3"
+                    className="accent-[var(--global-text-2)] mt-3 mr-2"
                     disabled={isLoading}
                   />
                   <FileUploadSection
@@ -188,13 +216,16 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
           </div>
         </div>
 
-        {/* Save Button */}
         <div className="pt-6 flex justify-center">
           <button
             onClick={handleSave}
             disabled={isLoading}
             className={`mt-6 w-[200px] py-2 ${
-              isLoading ? 'bg-gray-300' : 'bg-[#f6e3c5] hover:shadow-lg'
+              isLoading 
+                ? 'bg-gray-300' 
+                : hasChanges 
+                  ? 'bg-[var(--bg-sidebar-1)] hover:shadow-lg' 
+                  : 'bg-[#f6e3c5] hover:shadow-lg'
             } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border ${
               isLoading ? 'border-gray-400' : 'border-[#eac089]'
             } transition-all`}

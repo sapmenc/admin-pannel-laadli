@@ -34,7 +34,7 @@ const ModalOverlay = ({ isOpen, onClose, children }) => {
     >
       <div 
         className="flex justify-center relative right-4 bg-white rounded-lg shadow-xl w-[380px] max-h-[36vh] overflow-y-auto border-1 border-[#4b2b2b]"
-        style={{ top: '50%', transform: 'translateY(-80%)' }}
+        style={{ top: '50%', transform: 'translateY(-82%)'}}
       >
         {children}
       </div>
