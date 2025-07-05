@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-
-const FileUploadSection = ({ onFileSelect, selectedFile }) => {
+const FileUploadSection = ({ onFileSelect, selectedFile, onRemove }) => {
   const [previewURL, setPreviewURL] = useState(null);
 
   useEffect(() => {
@@ -32,7 +31,11 @@ const FileUploadSection = ({ onFileSelect, selectedFile }) => {
 
   const handleClear = (e) => {
     e.stopPropagation();
-    onFileSelect(null); // Reset file on click
+    if (onRemove) {
+      onRemove(); // ✅ call parent's remove handler
+    } else {
+      onFileSelect(null); // fallback
+    }
   };
 
   const getFileType = () => {
