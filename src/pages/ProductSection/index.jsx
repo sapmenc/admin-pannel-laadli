@@ -136,7 +136,7 @@ const ProductManagement = () => {
         <div className="flex flex-col flex-1 p-6 bg-global-1">
           <div className="flex flex-row items-center justify-between mb-6">
             <SearchView placeholder="Search by Product" onSearch={handleSearch} />
-            <div className="flex flex-row items-center space-x-4">
+            <div className="flex flex-row items-center space-x-4"> 
               <img
                 src="/images/img_iconoirfilter.svg"
                 alt="Filter"

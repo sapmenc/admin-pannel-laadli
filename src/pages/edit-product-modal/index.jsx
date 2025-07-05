@@ -61,7 +61,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
       if (!file && !initialFile) return false;
       if (!file || !initialFile) return true;
       if (file instanceof File || initialFile instanceof File) return true;
-      return file !== initialFile; // file is a string (URL)
+      return file !== initialFile;
     });
 
     const optionChanged = selectedOption !== initialState.selectedOption;
@@ -80,6 +80,12 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
     setFiles(newFiles);
   };
 
+  const handleFileRemove = (index) => {
+    const newFiles = [...files];
+    newFiles[index] = null;
+    setFiles(newFiles);
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
@@ -91,18 +97,21 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
   const handleSave = () => {
     if (!validateForm()) return;
 
-    const updates = {
-      ...formData,
-      selectedOption,
-      lastUpdated: new Date().toISOString(),
-      media: files
-        .map(file => (typeof file === 'string' ? file : null))
-        .filter(Boolean)
-    };
+    // Retain only old media URLs (deleted ones will be null and skipped)
+    const retainedURLs = files
+      .map(file => (typeof file === 'string' ? file : null))
+      .filter(Boolean);
 
     const filesToUpload = files
       .map(file => (file instanceof File ? file : null))
       .filter(Boolean);
+
+    const updates = {
+      ...formData,
+      selectedOption,
+      lastUpdated: new Date().toISOString(),
+      media: retainedURLs // This ensures only selected old files are retained
+    };
 
     updateProduct({
       id: product._id,
@@ -198,7 +207,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               {files.map((file, index) => (
                 <div key={index} className="flex items-start space-x-0">
                   <input
-                    type="radio"
+                    type="hidden"
                     name="primaryFile"
                     checked={selectedOption === index}
                     onChange={() => setSelectedOption(index)}
@@ -207,6 +216,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
                   />
                   <FileUploadSection
                     onFileSelect={(file) => handleFileSelect(index, file)}
+                    onRemove={() => handleFileRemove(index)}
                     selectedFile={file}
                     disabled={isLoading}
                   />
@@ -224,7 +234,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
               isLoading 
                 ? 'bg-gray-300' 
                 : hasChanges 
-                  ? 'bg-[var(--bg-sidebar-1)] hover:shadow-lg' 
+                  ? 'bg-sidebar-1 text-[#4b2b2b] border-sidebar-1 hover:bg-sidebar-1-dark hover:shadow-lg' 
                   : 'bg-[#f6e3c5] hover:shadow-lg'
             } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border ${
               isLoading ? 'border-gray-400' : 'border-[#eac089]'

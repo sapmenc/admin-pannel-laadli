@@ -10,14 +10,18 @@ const updateProductAPI = async ({ id, updates, files }) => {
   try {
     const formData = new FormData();
 
-   
     Object.entries(updates).forEach(([key, value]) => {
       if (value === undefined || value === null) {
         console.warn(`⚠️ Skipping ${key} because value is undefined/null`);
         return;
       }
 
-      if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof File)) {
+      if (Array.isArray(value)) {
+        // ✅ Fix: Append each item individually (for media URLs)
+        value.forEach((v) => {
+          formData.append(key, v);
+        });
+      } else if (typeof value === 'object' && !(value instanceof File)) {
         console.log(`📦 Stringifying object field: ${key}`);
         formData.append(key, JSON.stringify(value));
       } else {
@@ -69,23 +73,20 @@ export const useUpdateProduct = (options = {}) => {
   return useMutation({
     mutationFn: updateProductAPI,
     ...options,
-    
-  
+
     onMutate: async (variables) => {
       console.groupCollapsed('🔄 useUpdateProduct optimistic update');
       try {
         // Cancel outgoing refetches
         await queryClient.cancelQueries(['product', variables.id]);
-        
-        
+
         const previousProduct = queryClient.getQueryData(['product', variables.id]);
-       
 
         // Optimistically update cache
         queryClient.setQueryData(['product', variables.id], (old) => ({
           ...old,
           ...variables.updates,
-          media: variables.files 
+          media: variables.files
             ? [...(old?.media || []), ...variables.files.map(f => ({ name: f.name, type: 'optimistic' }))]
             : old?.media
         }));
@@ -97,7 +98,6 @@ export const useUpdateProduct = (options = {}) => {
       }
     },
 
-    // ===== Error Handling =====
     onError: (error, variables, context) => {
       console.group('❌ useUpdateProduct error');
       console.error('Error details:', {
@@ -111,21 +111,18 @@ export const useUpdateProduct = (options = {}) => {
         queryClient.setQueryData(['product', variables.id], context.previousProduct);
       }
 
-    
       options.onError?.(error, variables, context);
       console.groupEnd();
     },
 
-  
     onSuccess: (data, variables, context) => {
       console.group('✅ useUpdateProduct success');
       console.log('Updated product data:', data);
       console.log('Mutation variables:', variables);
-      
-      
+
       queryClient.invalidateQueries(['products']);
       queryClient.invalidateQueries(['product', variables.id]);
-      
+
       options.onSuccess?.(data, variables, context);
       console.groupEnd();
     },

@@ -126,13 +126,19 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
   }, []);
 
   function previousMonth() {
-    const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 });
-    setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"));
+    const prevMonth = add(firstDayCurrentMonth, { months: -1 });
+    const newSelectedDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), selectedDay.getDate());
+    setCurrentMonth(format(prevMonth, "MMM-yyyy"));
+    setSelectedDay(newSelectedDate);
+    setSelectedDate(newSelectedDate);
   }
-
+  
   function nextMonth() {
-    const firstDayNextMonth = add(firstDayCurrentMonth, { months: 1 });
-    setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"));
+    const nextMonth = add(firstDayCurrentMonth, { months: 1 });
+    const newSelectedDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), selectedDay.getDate());
+    setCurrentMonth(format(nextMonth, "MMM-yyyy"));
+    setSelectedDay(newSelectedDate);
+    setSelectedDate(newSelectedDate);
   }
 
   const isSelectedToday = isToday(selectedDay);

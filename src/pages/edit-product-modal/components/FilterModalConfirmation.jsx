@@ -12,8 +12,6 @@ const FilterModal = ({
   onStatusChange
 }) => {
 
-  
-
   const handleToggle = () => {
     const newValue = !(selectedStatus === true);
     onStatusChange(newValue);
@@ -26,12 +24,13 @@ const FilterModal = ({
     });
     onClose();
   };
-  
 
   const handleClearAndClose = () => {
     onClear();
     onClose();
   };
+
+  const isApplyEnabled = selectedCategory || selectedStatus;
 
   return (
     <ModalOverlay isOpen={isOpen} onClose={onClose}>
@@ -96,7 +95,6 @@ const FilterModal = ({
                   </div>
                 )}
               </div>
-  
             </div>
           </div>
 
@@ -110,7 +108,12 @@ const FilterModal = ({
             </button>
             <button
               onClick={handleApply}
-              className="w-full py-3 bg-sidebar-1 text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-sidebar-1 hover:bg-sidebar-1-dark hover:shadow-lg transition-all"
+              disabled={!isApplyEnabled}
+              className={`w-full py-3 font-serif text-xl rounded-md shadow-md border transition-all ${
+                isApplyEnabled
+                  ? 'bg-sidebar-1 text-[#4b2b2b] border-sidebar-1 hover:bg-sidebar-1-dark hover:shadow-lg'
+                  : 'w-full py-3 bg-[#f6e3c5] text-sidebar-1 font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all'
+              }`}
             >
               Apply
             </button>
