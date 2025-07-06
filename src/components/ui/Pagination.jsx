@@ -64,9 +64,9 @@ const Pagination = ({
   return (
     <div className={`flex flex-row items-center justify-center h-[41px] w-[292px] bg-global-1 px-2 ${className}`}>
       <img
-        src="/images/img_fearrowdown.svg"
+        src="/images/img_fearrowdown_gray_800.svg"
         alt="Previous"
-        style={{ transform: 'rotate(0deg)' }}
+        style={{ transform: 'rotate(-180deg)' }}
         className={`h-[17px] w-[17px] cursor-pointer mr-4 ${activePage === 1 ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         onClick={handlePrevious}

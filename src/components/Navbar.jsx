@@ -25,13 +25,13 @@ const Header = () => {
   }, []);
 
   return (
-    <div className="flex flex-row items-center justify-between w-full h-[50px] px-8 py-4 relative mb-5">
+    <div className=" mt-5 flex flex-row items-center justify-between w-full h-[50px] px-8 py-4 relative mb-5">
       <div className="flex items-center">
         <img 
-          src="/images/img_headerlogo.png" 
+          src="/images/laadli_logo.png" 
           alt="Header Logo" 
-          className="h-12 w-[165px] object-contain cursor-pointer"
-          onClick={() => navigate('/')}
+          className="h-30 ml-10  w-[185px] object-contain cursor-pointer"
+          onClick={() => navigate('/calendar')}
         />
       </div>
 
