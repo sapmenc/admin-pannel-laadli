@@ -1,4 +1,3 @@
-// ProductManagement.jsx
 import React, { useState, useEffect } from 'react';
 import Header from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
@@ -11,10 +10,11 @@ import CreateProductModal from '../create-product-modal';
 import DeleteConfirmationModal from '../edit-product-modal/components/DeleteConfirmationModal';
 import FilterModal from '../edit-product-modal/components/FilterModalConfirmation';
 import { formatDate } from '../../utils/dateFormatter';
-import { useGetProducts } from '../../hooks/use-productlist';
 import { useDeleteProduct } from '../../hooks/use-delete-product';
 import { useToggleProductStatus } from '../../hooks/use-changestatus';
+import { useFilteredProducts } from '../../hooks/use-filterproduct';
 import { toast } from 'react-toastify';
+import Loader from '../../components/Loader';
 
 const ProductManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,7 +30,13 @@ const ProductManagement = () => {
   const [tempCategory, setTempCategory] = useState(null);
   const [tempStatus, setTempStatus] = useState(null);
 
-  const { data: fetchedData, isLoading, error, refetch } = useGetProducts(currentPage);
+  const { data: fetchedData, isLoading, error, refetch } = useFilteredProducts({
+    page: currentPage,
+    category: selectedCategory,
+    status: selectedStatus,
+    search: searchQuery, // ✅ now search is passed to backend
+  });
+
   const deleteProductMutation = useDeleteProduct();
   const toggleStatusMutation = useToggleProductStatus();
 
@@ -55,9 +61,10 @@ const ProductManagement = () => {
     }
   }, [error]);
 
+  // ✅ backend search trigger on keystroke
   const handleSearch = (query) => {
     setSearchQuery(query);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on new search
   };
 
   const handleNewProduct = () => setCreateModalOpen(true);
@@ -121,13 +128,6 @@ const ProductManagement = () => {
     setCurrentPage(1);
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
-    const matchesStatus = typeof selectedStatus === 'boolean' ? product.status === selectedStatus : true;
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
-
   return (
     <div className="flex flex-col min-h-screen w-full bg-global-1">
       <Header />
@@ -159,28 +159,36 @@ const ProductManagement = () => {
             </div>
 
             <div className="flex flex-col">
-              {filteredProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-400 rounded-[10px]">
-                  <div className="text-gray-500 font-lora text-lg mb-2">No products found</div>
-                  <div className="text-gray-400 font-lora text-sm">There are no products to display on this page.</div>
-                </div>
-              ) : (
-                filteredProducts.map((product) => (
-                  <div key={product.id} className="flex flex-row items-center h-16 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
-                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.name}</span></div>
-                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.category}</span></div>
-                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.createdOn}</span></div>
-                    <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.lastUpdated}</span></div>
-                    <div className="flex-1 flex justify-center">
-                      <Switch checked={product.status} onChange={() => handleStatusToggle(product.id)} />
-                    </div>
-                    <div className="flex-1 flex justify-center items-center space-x-2">
-                      <img src="/images/img_mdipencil.svg" alt="Edit" className="h-[30px] w-[30px] cursor-pointer hover:opacity-80" onClick={() => handleEdit(product.id)} />
-                      <img src="/images/img_magetrashfill.svg" alt="Delete" className="h-[35px] w-[35px] cursor-pointer hover:opacity-80" onClick={() => handleDelete(product.id)} />
-                    </div>
+              {
+                isLoading ? (
+                  <div className="flex justify-center items-center h-64 bg-white border border-gray-400 rounded-[10px]">
+                    <Loader />
                   </div>
-                ))
-              )}
+                ) : (
+                  products.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-400 rounded-[10px]">
+                      <div className="text-gray-500 font-lora text-lg mb-2">No products found</div>
+                      <div className="text-gray-400 font-lora text-sm">There are no products to display on this page.</div>
+                    </div>
+                  ) : (
+                    products.map((product) => (
+                      <div key={product.id} className="flex flex-row items-center h-16 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
+                        <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.name}</span></div>
+                        <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.category}</span></div>
+                        <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.createdOn}</span></div>
+                        <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.lastUpdated}</span></div>
+                        <div className="flex-1 flex justify-center">
+                          <Switch checked={product.status} onChange={() => handleStatusToggle(product.id)} />
+                        </div>
+                        <div className="flex-1 flex justify-center items-center space-x-2">
+                          <img src="/images/img_mdipencil.svg" alt="Edit" className="h-[30px] w-[30px] cursor-pointer hover:opacity-80" onClick={() => handleEdit(product.id)} />
+                          <img src="/images/img_magetrashfill.svg" alt="Delete" className="h-[35px] w-[35px] cursor-pointer hover:opacity-80" onClick={() => handleDelete(product.id)} />
+                        </div>
+                      </div>
+                    ))
+                  )
+                )
+              }
             </div>
           </div>
 

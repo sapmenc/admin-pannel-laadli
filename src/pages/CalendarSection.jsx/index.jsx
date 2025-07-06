@@ -150,7 +150,7 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
       <div className="flex flex-row flex-1 min-h-0">
         <Sidebar />
 
-        <div className="flex flex-col flex-1 p-6 bg-global-1 overflow-auto items-center">
+        <div className=" flex flex-col flex-1 p-6 bg-global-1 overflow-auto items-center">
           <div className="w-full max-w-[1348px] relative mt-5">
             {/* Combined Success/Error/Blocked Messages */}
             {(showSuccessMessage || showErrorMessage || showBlockedMessage) && (

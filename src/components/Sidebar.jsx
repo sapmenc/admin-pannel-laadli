@@ -19,7 +19,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="bg-sidebar-1 w-[169px] min-h-screen mt-2 flex flex-col border-r border-white">
+    <div className="bg-sidebar-1 rounded-r-md w-[169px] min-h-screen mt-2 flex flex-col border-r border-white">
       {menuItems.map((item, index) => (
         <div
           key={index}

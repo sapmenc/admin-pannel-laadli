@@ -8,10 +8,12 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await adminLogin(email, password);
       localStorage.setItem("userDetails", JSON.stringify(response.user));
@@ -20,6 +22,8 @@ const AdminLogin = () => {
       console.error(error);
       setErrorMsg("Invalid email or password");
       setTimeout(() => setErrorMsg(''), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,11 +79,14 @@ const AdminLogin = () => {
 
         <button
           type="submit"
+          disabled={loading}
           className={`mt-6 w-full py-2 ${
             isTyping ? 'bg-sidebar-1' : 'bg-[#f6e3c5]'
-          } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all`}
+          } text-[#4b2b2b] font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all ${
+            loading ? 'opacity-60 cursor-not-allowed' : ''
+          }`}
         >
-          Sign In
+          {loading ? 'Signing...' : 'Sign In'}
         </button>
       </form>
     </div>
