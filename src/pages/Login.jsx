@@ -86,7 +86,7 @@ const AdminLogin = () => {
             loading ? 'opacity-60 cursor-not-allowed' : ''
           }`}
         >
-          {loading ? 'Signing...' : 'Sign In'}
+          {loading ? 'Signing' : 'Sign In'}
         </button>
       </form>
     </div>

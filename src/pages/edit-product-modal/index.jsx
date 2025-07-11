@@ -174,6 +174,7 @@ const EditProductModal = ({ isOpen, onClose, product, onProductUpdate }) => {
             >
               <option value="Premium">Premium</option>
               <option value="Luxe">Luxe</option>
+              <option value="Other Drapes">Other Drapes</option>
             </select>
 
             <textarea

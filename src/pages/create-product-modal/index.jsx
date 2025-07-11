@@ -126,6 +126,7 @@ const CreateProductModal = ({ isOpen, onClose, onProductCreate }) => {
             >
               <option value="Premium">Premium</option>
               <option value="Luxe">Luxe</option>
+              <option value="Other Drapes">Other Drapes</option>
             </select>
 
             <textarea
@@ -181,7 +182,7 @@ const CreateProductModal = ({ isOpen, onClose, onProductCreate }) => {
             disabled={localLoading || !isFormValid}
             className={`mt-6 w-[200px] py-2 font-serif text-xl rounded-md shadow-md border transition-all flex items-center justify-center gap-2 ${
               localLoading || !isFormValid
-                ? 'bg-[#f6e3c5] text-[#4b2b2b] border-[#eac089] opacity-70 cursor-not-allowed'
+                ? 'bg-sidebar-1 text-[#4b2b2b] border-[#eac089] opacity-70 cursor-not-allowed'
                 : ' bg-sidebar-1 text-white  hover:shadow-lg'
             }`}
           >
@@ -200,7 +201,7 @@ const CreateProductModal = ({ isOpen, onClose, onProductCreate }) => {
                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                   />
                 </svg>
-                Creating...
+                Creating
               </>
             ) : (
               'Create'
