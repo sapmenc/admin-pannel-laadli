@@ -35,7 +35,7 @@ const FilterModal = ({
   return (
     <ModalOverlay isOpen={isOpen} onClose={onClose}>
       <div className="p-6 bg-white rounded-lg max-w-xs text-global-2 text-2xl font-bellefair">
-        <div className="space-y-8">
+        <div className="space-y-8 flex flex-col">
 
           {/* Category Filter */}
           <div className="flex items-center gap-5">
@@ -62,6 +62,17 @@ const FilterModal = ({
                   className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b] checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
                 />
                 <span>Premium</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="category"
+                  value="Other Drapes"
+                  checked={selectedCategory === 'Other Drapes'}
+                  onChange={() => onCategoryChange('Other Drapes')}
+                  className="h-5 w-5 border-2 border-gray-300 text-[#4b2b2b] checked:bg-[#4b2b2b] checked:border-[#4b2b2b] appearance-none rounded-full transition-colors duration-200"
+                />
+                <span>Drapes</span>
               </label>
             </div>
           </div>
@@ -99,7 +110,7 @@ const FilterModal = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-between pt-6 gap-6">
+          <div className="flex justify-between pt-6 gap-6 ">
             <button
               onClick={handleClearAndClose}
               className="w-full py-3 bg-[#f6e3c5] text-sidebar-1 font-serif text-xl rounded-md shadow-md border border-[#eac089] hover:shadow-lg transition-all"

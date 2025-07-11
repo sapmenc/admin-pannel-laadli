@@ -199,7 +199,7 @@ export function FullScreenCalendar({ unavailableDates = [], onUserSelectedDate }
               <Button
                 onClick={previousMonth}
                 disabled={disablePrev}
-                className="rounded-none mr-2 pr-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-2 border-r-[#] focus-visible:z-10 border-l-0 border-t-0 border-b-0"
+                className="rounded-none mr-2 pr-2 shadow-none first:rounded-s-lg last:rounded-e-lg border-2 border-r-[#808080] focus-visible:z-10 border-l-0 border-t-0 border-b-0"
                 size="icon"
                 aria-label="Navigate to previous month"
               >
