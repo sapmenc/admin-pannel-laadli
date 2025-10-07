@@ -113,7 +113,7 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
       {/* Link Icon (for updating reel URL) */}
       {onLink ? (
         <img
-          src="/images/link_icon2.png"
+          src="/images/link_icon_final.png"
           alt="Link"
           className="absolute top-[46px] right-2 w-[38px] h-[38px] cursor-pointer rounded-full mt-2 hover:opacity-80 transition-opacity z-10"
           onClick={onLink}
@@ -126,7 +126,9 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
 const OurStorySection = () => {
   // Load and save hooks
   const { data: story } = useOurStoryContent();
-  const { mutate: saveOurStory, isLoading: isSaving } = useUpdateOurStoryContent();
+  const { mutate: saveOurStory, isPending: isSaving } = useUpdateOurStoryContent();
+  const [isDirty, setIsDirty] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (!story) return;
@@ -258,7 +260,7 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection1Text || "<p></p>"}
-                    onChange={(html) => setStorySection1Text(html)}
+                    onChange={(html) => { setStorySection1Text(html); setIsDirty(true); }}
                     placeholder="Write Section 1 content..."
                     theme="snow"
                     style={{ height: "320px" , width: "500px" }}
@@ -276,7 +278,7 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection2Text || "<p></p>"}
-                    onChange={(html) => setStorySection2Text(html)}
+                    onChange={(html) => { setStorySection2Text(html); setIsDirty(true); }}
                     placeholder="Write Section 2 content..."
                     theme="snow"
                     style={{ height: "320px"  , width: "500px"}}
@@ -310,7 +312,7 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection3Text || "<p></p>"}
-                    onChange={(html) => setStorySection3Text(html)}
+                    onChange={(html) => { setStorySection3Text(html); setIsDirty(true); }}
                     placeholder="Write Section 3 content..."
                     theme="snow"
                     style={{ height: "320px" , width: "500px" }}
@@ -353,7 +355,10 @@ const OurStorySection = () => {
             </div>
 
       {/* Save Button */}
-            <div className="flex justify-center mb-5 ">
+            <div className="flex flex-col items-center mb-5 ">
+              {saveMessage ? (
+                <div className="mb-3 text-green-700 text-2xl font-medium">{saveMessage}</div>
+              ) : null}
               <Button
                 variant="primary"
                 className="active mt-6 w-[200px] py-2 !bg-[#099a0e] text-[#099a0e] font-serif text-xl rounded-md shadow-md border border-[#099a0e] hover:shadow-lg transition-all"
@@ -372,10 +377,11 @@ const OurStorySection = () => {
                 storyLastFile3 ? (storyLastFile3.file instanceof File ? storyLastFile3.file : storyLastFile3.url) : null,
               ],
             }, {
-              onSuccess: (data) => { console.log('Our Story updated:', data); toast.success('Our Story updated successfully'); },
-              onError: (err) => { console.error('Our Story update failed:', err); toast.error(err?.message || 'Failed to update Our Story'); }
+              onSuccess: (data) => { console.log('Our Story updated:', data); toast.success('Our Story updated successfully'); setSaveMessage('Our Story section successfully updated.'); setTimeout(() => setSaveMessage(''), 2000); setIsDirty(false); },
+              onError: (err) => { console.error('Our Story update failed:', err); toast.error(err?.message || 'Failed to update Our Story'); setSaveMessage(''); }
             })
           }}
+              disabled={!isDirty || isSaving}
               >
                 <div className="flex items-center justify-center gap-2">
                   <img

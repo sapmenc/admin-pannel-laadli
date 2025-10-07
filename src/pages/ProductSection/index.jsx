@@ -172,7 +172,7 @@ const ProductManagement = () => {
                     </div>
                   ) : (
                     products.map((product) => (
-                      <div key={product.id} className="flex flex-row items-center h-16 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
+                      <div key={product.id} className="flex flex-row items-center h-20 bg-white border border-gray-400 rounded-[10px] px-4 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
                         <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.name}</span></div>
                         <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.category}</span></div>
                         <div className="flex-1 text-center"><span className="text-global-2 font-lora text-base">{product.createdOn}</span></div>

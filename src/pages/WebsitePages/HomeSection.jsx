@@ -50,20 +50,7 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onRemove }) => {
         onClick={onEdit}
       />
 
-      {/* Cross Remove Icon */}
-      {file ? (
-        <button
-          type="button"
-          className="absolute top-[46px] right-2 bg-white text-[#4b2b2b] rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow hover:bg-gray-100 z-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove?.();
-          }}
-          aria-label="Remove"
-        >
-          ✕
-        </button>
-      ) : null}
+      
     </div>
   );
 };
@@ -73,6 +60,8 @@ const HomeSection = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTarget, setActiveTarget] = useState(null);
   const [contentVersion, setContentVersion] = useState(0);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
 
   // Separate editor states
   const [storyText, setStoryText] = useState("");
@@ -117,6 +106,7 @@ const HomeSection = () => {
       setBookFiles(copy);
     }
     setActiveTarget(null);
+    setIsDirty(true);
   };
 
   // Load current content
@@ -149,9 +139,10 @@ const HomeSection = () => {
     setBookFormText3(normalize(books[2]?.text));
     setBookFormText4(normalize(books[3]?.text));
     setContentVersion(v => v + 1);
+    setIsDirty(false);
   }, [homeData]);
 
-  const { mutate: saveHome, isLoading: isSaving } = useUpdateHomeContent();
+  const { mutate: saveHome, isPending: isSaving } = useUpdateHomeContent();
   console.log('isSaving', saveHome);
 
   const buildPayload = () => {
@@ -210,7 +201,7 @@ const HomeSection = () => {
                 <ReactQuill
                   key={`story-${contentVersion}`}
                   value={storyText || "<p></p>"}
-                  onChange={(html) => setStoryText(html)}
+                  onChange={(html) => { setStoryText(html); setIsDirty(true); }}
                   placeholder="Write your Our Story content..."
                   theme="snow"
                   style={{ height: "320px" , width: "100%" }}
@@ -244,10 +235,10 @@ const HomeSection = () => {
                     <ReactQuill
                       key={`luxe-${contentVersion}`}
                       value={luxeText || "<p></p>"}
-                      onChange={(html) => setLuxeText(html)}
+                      onChange={(html) => { setLuxeText(html); setIsDirty(true); }}
                       placeholder="Describe the Luxe category..."
                       theme="snow"
-                      style={{ height: "290px" , width: "400px" }}
+                      style={{ height: "295px" , width: "400px" }}
                     />
                   </div>
                 </div>
@@ -274,10 +265,10 @@ const HomeSection = () => {
                     <ReactQuill
                       key={`premium-${contentVersion}`}
                       value={premiumText || "<p></p>"}
-                      onChange={(html) => setPremiumText(html)}
+                      onChange={(html) => { setPremiumText(html); setIsDirty(true); }}
                       placeholder="Describe the Premium category..."
                       theme="snow"
-                      style={{ height: "290px" , width: "400px" }}
+                      style={{ height: "295px" , width: "400px" }}
                     />
                   </div>
                 </div>
@@ -298,6 +289,7 @@ const HomeSection = () => {
                       const copy = [...veilFiles];
                       copy[i] = f;
                       setVeilFiles(copy);
+                      setIsDirty(true);
                     }}
                     label={`Veil ${i + 1}`}
                     onEdit={() => handleEditClick(`veil_${i}`)}
@@ -305,6 +297,7 @@ const HomeSection = () => {
                       const copy = [...veilFiles];
                       copy[i] = null;
                       setVeilFiles(copy);
+                      setIsDirty(true);
                     }}
                   />
                 ))}
@@ -324,17 +317,17 @@ const HomeSection = () => {
                   setState: setBookFormText1,
                 },
                 {
-                  label: "Reach out on WhatsAppum",
+                  label: "Reach out on WhatsApp",
                   state: bookFormText2,
                   setState: setBookFormText2,
                 },
                 {
-                  label: "Fill the contact form",
+                  label: "Book your consultation slot",
                   state: bookFormText3,
                   setState: setBookFormText3,
                 },
                 {
-                  label: "Reach out on WhatsAppum",
+                  label: "Your first call with the founder",
                   state: bookFormText4,
                   setState: setBookFormText4,
                 },
@@ -348,6 +341,7 @@ const HomeSection = () => {
                           const copy = [...bookFiles];
                           copy[i] = f;
                           setBookFiles(copy);
+                          setIsDirty(true);
                         }}
                         label={section.label}
                         onEdit={() => handleEditClick(`book_${i}`)}
@@ -355,6 +349,7 @@ const HomeSection = () => {
                           const copy = [...bookFiles];
                           copy[i] = null;
                           setBookFiles(copy);
+                          setIsDirty(true);
                         }}
                       />
                       <div className="text-center">
@@ -368,10 +363,10 @@ const HomeSection = () => {
                       <ReactQuill
                         key={`book-${i}-${contentVersion}`}
                         value={section.state || "<p></p>"}
-                        onChange={(html) => section.setState(html)}
+                        onChange={(html) => { section.setState(html); setIsDirty(true); }}
                         placeholder="Enter call-to-action or instructions..."
                         theme="snow"
-                        style={{ height: "290px" , width: "400px" }}
+                        style={{ height: "295px" , width: "400px" }}
                       />
                     </div>
                   </div>
@@ -380,7 +375,10 @@ const HomeSection = () => {
             </div>
 
             {/* Save Button */}
-            <div className="flex justify-center mb-5 ">
+            <div className="flex flex-col items-center mb-5 ">
+              {saveMessage ? (
+                <div className="mb-3 text-green-700 text-2xl font-medium">{saveMessage}</div>
+              ) : null}
               <Button
                 variant="primary"
                 className="active mt-6 w-[200px] py-2 !bg-[#099a0e] text-[#099a0e] font-serif text-xl rounded-md shadow-md border border-[#099a0e] hover:shadow-lg transition-all"
@@ -390,13 +388,18 @@ const HomeSection = () => {
                       console.log('HomeSection save: working is perfect');
                       console.log('Updated home content:', data);
                       toast.success('Home section updated successfully');
+                      setSaveMessage('Home section successfully updated.');
+                      setTimeout(() => setSaveMessage(''), 2000);
+                      setIsDirty(false);
                     },
                     onError: (error) => {
                       console.error('HomeSection save failed:', error);
                       toast.error(error?.message || 'Failed to update Home section');
+                      setSaveMessage('');
                     },
                   })
                 }
+                disabled={!isDirty || isSaving}
               >
                 <div className="flex items-center justify-center gap-2">
                   <img

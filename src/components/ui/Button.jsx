@@ -26,7 +26,7 @@ const Button = ({
       {icon && (
         <img src={icon} alt="" className="h-[30px] w-[30px] mr-3" />
       )}
-      <span className="text-global-1 font-bellefair text-xl leading-6">
+      <span className="text-white font-bellefair text-xl leading-6">
         {children}
       </span>
     </button>

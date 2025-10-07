@@ -105,7 +105,7 @@ const EditModal = ({ isOpen, onClose, onComplete }) => {
 
           {error ? (
             <div className="w-full mb-3 px-[22px]">
-              <div className="text-red-600 text-[12px]">{error}</div>
+              <div className="text-red-600 text-[16px]">{error}</div>
             </div>
           ) : null}
 
@@ -144,7 +144,7 @@ const EditModal = ({ isOpen, onClose, onComplete }) => {
             <div className="w-full px-[22px] mb-4">
               <div className="w-full bg-gray-200 rounded h-[8px]">
                 <div
-                  className="bg-global-2 h-[8px] rounded"
+                  className="h-[8px] rounded bg-[#099a0e]"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -156,7 +156,7 @@ const EditModal = ({ isOpen, onClose, onComplete }) => {
             <Button
               onClick={isSaving ? () => {} : handleSave}
               disabled={isSaving}
-              className="!bg-[#099a0e] w-full bg-button-1 text-button-1 px-[34px] py-[4px] text-[20px] font-bellefair font-normal leading-[23px] text-center rounded-[10px] hover:opacity-90 transition-opacity"
+              className="!bg-[#099a0e] w-full  text-white px-[34px] py-[4px] text-[20px] font-bellefair font-normal leading-[23px] text-center rounded-[10px] hover:opacity-90 transition-opacity"
             >
               {isSaving ? 'Saving...' : 'Save'}
             </Button>

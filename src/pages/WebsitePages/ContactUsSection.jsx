@@ -57,6 +57,8 @@ const ContactUsSection = () => {
   const [selectedTab, setSelectedTab] = useState("ContactUs");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
 
   // Unique states
   const [contactHeroFile, setContactHeroFile] = useState(null);
@@ -69,11 +71,11 @@ const ContactUsSection = () => {
   const handleCloseModal = () => setIsEditModalOpen(false);
 
   const handleModalComplete = ({ url, type, file }) => {
-    if (url) setContactHeroFile({ type: type || "image/*", url, file: file || null });
+    if (url) { setContactHeroFile({ type: type || "image/*", url, file: file || null }); setIsDirty(true); }
   };
 
   // Backend save
-  const { mutate: saveContact, isLoading: isSaving } = useUpdateContactContent();
+  const { mutate: saveContact, isPending: isSaving } = useUpdateContactContent();
   const handleSaveAll = () => {
     setSaveError("");
     const heroPayload = contactHeroFile ? (contactHeroFile.file instanceof File ? contactHeroFile.file : (typeof contactHeroFile.url === 'string' ? contactHeroFile.url : undefined)) : null;
@@ -85,11 +87,15 @@ const ContactUsSection = () => {
         onSuccess: (_data) => {
           console.log('ContactUs updated response:', _data);
           toast.success('Contact Us updated successfully');
+          setSaveMessage('Contact Us section successfully updated.');
+          setTimeout(() => setSaveMessage(''), 2000);
+          setIsDirty(false);
         },
         onError: (err) => {
           console.error('Contact Us update failed:', err);
           setSaveError(err?.message || 'Failed to update Contact Us');
           toast.error(err?.message || 'Failed to update Contact Us');
+          setSaveMessage('');
         },
       }
     );
@@ -139,7 +145,7 @@ const ContactUsSection = () => {
               <div className="card">
                 <ReactQuill
                   value={contactHeroText || "<p></p>"}
-                  onChange={(html) => setContactHeroText(html)}
+                  onChange={(html) => { setContactHeroText(html); setIsDirty(true); }}
                   theme="snow"
                   style={{ height: "320px" }}
                 />
@@ -147,11 +153,15 @@ const ContactUsSection = () => {
             </div>
 
             {/* Save Button */}
-            <div className="flex justify-center mb-5">
+            <div className="flex flex-col items-center mb-5">
+              {saveMessage ? (
+                <div className="mb-3 text-green-700 text-2xl font-medium">{saveMessage}</div>
+              ) : null}
               <Button
                 variant="primary"
                 className="active mt-6 w-[200px] py-2 !bg-[#099a0e] text-[#099a0e] font-serif text-xl rounded-md shadow-md border border-[#099a0e] hover:shadow-lg transition-all"
                 onClick={isSaving ? () => {} : handleSaveAll}
+                disabled={!isDirty || isSaving}
               >
                 <div className="flex items-center justify-center gap-2">
                   <img
