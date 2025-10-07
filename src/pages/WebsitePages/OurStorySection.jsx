@@ -3,7 +3,7 @@ import Header from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import Button from "../../components/ui/Button";
 import EditModal from "./components/EditModal";
-import { Editor } from "primereact/editor";
+import ReactQuill from "react-quill";
 import { useOurStoryContent, useUpdateOurStoryContent } from "../../hooks/website-ourstory";
 import { toast } from 'react-toastify';
 
@@ -256,11 +256,12 @@ const OurStorySection = () => {
                   />
                 </div>
                 <div className="w-full lg:w-1/2 card">
-                  <Editor
-                    value={storySection1Text}
-                    onTextChange={(e) => setStorySection1Text(e.htmlValue)}
+                  <ReactQuill
+                    value={storySection1Text || "<p></p>"}
+                    onChange={(html) => setStorySection1Text(html)}
                     placeholder="Write Section 1 content..."
-                    style={{ height: "290px" }}
+                    theme="snow"
+                    style={{ height: "320px" , width: "500px" }}
                   />
                 </div>
               </div>
@@ -273,11 +274,12 @@ const OurStorySection = () => {
               </h2>
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="w-full lg:w-1/2 card">
-                  <Editor
-                    value={storySection2Text}
-                    onTextChange={(e) => setStorySection2Text(e.htmlValue)}
+                  <ReactQuill
+                    value={storySection2Text || "<p></p>"}
+                    onChange={(html) => setStorySection2Text(html)}
                     placeholder="Write Section 2 content..."
-                    style={{ height: "290px" }}
+                    theme="snow"
+                    style={{ height: "320px"  , width: "500px"}}
                   />
                 </div>
                 <div className="w-full lg:w-1/2">
@@ -306,11 +308,12 @@ const OurStorySection = () => {
                   />
                 </div>
                 <div className="w-full lg:w-1/2 card">
-                  <Editor
-                    value={storySection3Text}
-                    onTextChange={(e) => setStorySection3Text(e.htmlValue)}
+                  <ReactQuill
+                    value={storySection3Text || "<p></p>"}
+                    onChange={(html) => setStorySection3Text(html)}
                     placeholder="Write Section 3 content..."
-                    style={{ height: "290px" }}
+                    theme="snow"
+                    style={{ height: "320px" , width: "500px" }}
                   />
                 </div>
               </div>

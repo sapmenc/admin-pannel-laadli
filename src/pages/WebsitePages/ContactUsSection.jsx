@@ -3,15 +3,16 @@ import Header from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import Button from "../../components/ui/Button";
 import EditModal from "./components/EditModal";
-import { Editor } from "primereact/editor";
-import { useContactContent } from "../../hooks/website-contact";
+import ReactQuill from "react-quill";
+import { useContactContent, useUpdateContactContent } from "../../hooks/website-contact";
+import { toast } from 'react-toastify';
 
 const FileUploadBox = ({ file, setFile, label, onEdit }) => {
   const handleFileChange = (e) => {
     const uploaded = e.target.files[0];
     if (uploaded) {
       const url = URL.createObjectURL(uploaded);
-      setFile({ type: uploaded.type, url });
+      setFile({ type: uploaded.type, url, file: uploaded });
     }
   };
 
@@ -55,7 +56,6 @@ const FileUploadBox = ({ file, setFile, label, onEdit }) => {
 const ContactUsSection = () => {
   const [selectedTab, setSelectedTab] = useState("ContactUs");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   // Unique states
@@ -68,18 +68,31 @@ const ContactUsSection = () => {
 
   const handleCloseModal = () => setIsEditModalOpen(false);
 
-  const handleModalComplete = ({ url, type }) => {
-    if (url) setContactHeroFile({ type: type || "image/*", url });
+  const handleModalComplete = ({ url, type, file }) => {
+    if (url) setContactHeroFile({ type: type || "image/*", url, file: file || null });
   };
 
-  // Removed backend save logic
+  // Backend save
+  const { mutate: saveContact, isLoading: isSaving } = useUpdateContactContent();
   const handleSaveAll = () => {
     setSaveError("");
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      alert("Contact Us data saved (frontend mock only).");
-    }, 1000);
+    const heroPayload = contactHeroFile ? (contactHeroFile.file instanceof File ? contactHeroFile.file : (typeof contactHeroFile.url === 'string' ? contactHeroFile.url : undefined)) : null;
+    const outgoing = { hero: heroPayload, contentText: contactHeroText };
+    console.log('ContactUs save payload:', outgoing);
+    saveContact(
+      outgoing,
+      {
+        onSuccess: (_data) => {
+          console.log('ContactUs updated response:', _data);
+          toast.success('Contact Us updated successfully');
+        },
+        onError: (err) => {
+          console.error('Contact Us update failed:', err);
+          setSaveError(err?.message || 'Failed to update Contact Us');
+          toast.error(err?.message || 'Failed to update Contact Us');
+        },
+      }
+    );
   };
 
   // Load content from backend and populate editor and media preview
@@ -124,9 +137,10 @@ const ContactUsSection = () => {
                 Contact Us Content
               </h2>
               <div className="card">
-                <Editor
-                  value={contactHeroText}
-                  onTextChange={(e) => setContactHeroText(e.htmlValue)}
+                <ReactQuill
+                  value={contactHeroText || "<p></p>"}
+                  onChange={(html) => setContactHeroText(html)}
+                  theme="snow"
                   style={{ height: "320px" }}
                 />
               </div>

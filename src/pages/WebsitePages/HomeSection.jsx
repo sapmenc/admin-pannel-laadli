@@ -3,7 +3,7 @@ import Header from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import Button from "../../components/ui/Button";
 import EditModal from "./components/EditModal";
-import { Editor } from "primereact/editor";
+import ReactQuill from "react-quill";
 import { useHomeContent, useUpdateHomeContent } from "../../hooks/website-home";
 import { toast } from 'react-toastify';
 
@@ -152,6 +152,7 @@ const HomeSection = () => {
   }, [homeData]);
 
   const { mutate: saveHome, isLoading: isSaving } = useUpdateHomeContent();
+  console.log('isSaving', saveHome);
 
   const buildPayload = () => {
     const payload = {
@@ -206,16 +207,16 @@ const HomeSection = () => {
                 Our Story Section
               </h2>
               <div className="card">
-                <Editor
+                <ReactQuill
                   key={`story-${contentVersion}`}
-                  value={storyText}
-                  onTextChange={(e) => setStoryText(e.htmlValue)}
+                  value={storyText || "<p></p>"}
+                  onChange={(html) => setStoryText(html)}
                   placeholder="Write your Our Story content..."
-                  style={{ height: "320px" }}
+                  theme="snow"
+                  style={{ height: "320px" , width: "100%" }}
                 />
               </div>
             </div>
-
             {/* Categories Section */}
             <div className="mb-[82px]">
               <h2 className="text-[20px] font-bellefair font-normal leading-[23px] text-global-3 mb-[16px]">
@@ -240,12 +241,13 @@ const HomeSection = () => {
                     </div>
                   </div>
                   <div className="card">
-                    <Editor
+                    <ReactQuill
                       key={`luxe-${contentVersion}`}
-                      value={luxeText}
-                      onTextChange={(e) => setLuxeText(e.htmlValue)}
+                      value={luxeText || "<p></p>"}
+                      onChange={(html) => setLuxeText(html)}
                       placeholder="Describe the Luxe category..."
-                      style={{ height: "290px" }}
+                      theme="snow"
+                      style={{ height: "290px" , width: "400px" }}
                     />
                   </div>
                 </div>
@@ -269,12 +271,13 @@ const HomeSection = () => {
                     </div>
                   </div>
                   <div className="card">
-                    <Editor
+                    <ReactQuill
                       key={`premium-${contentVersion}`}
-                      value={premiumText}
-                      onTextChange={(e) => setPremiumText(e.htmlValue)}
+                      value={premiumText || "<p></p>"}
+                      onChange={(html) => setPremiumText(html)}
                       placeholder="Describe the Premium category..."
-                      style={{ height: "290px" }}
+                      theme="snow"
+                      style={{ height: "290px" , width: "400px" }}
                     />
                   </div>
                 </div>
@@ -362,12 +365,13 @@ const HomeSection = () => {
                     </div>
 
                     <div className="card">
-                      <Editor
+                      <ReactQuill
                         key={`book-${i}-${contentVersion}`}
-                        value={section.state}
-                        onTextChange={(e) => section.setState(e.htmlValue)}
+                        value={section.state || "<p></p>"}
+                        onChange={(html) => section.setState(html)}
                         placeholder="Enter call-to-action or instructions..."
-                        style={{ height: "290px" }}
+                        theme="snow"
+                        style={{ height: "290px" , width: "400px" }}
                       />
                     </div>
                   </div>
