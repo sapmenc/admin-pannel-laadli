@@ -4,8 +4,11 @@ import Sidebar from "../../components/Sidebar";
 import Button from "../../components/ui/Button";
 import EditModal from "./components/EditModal";
 import ReactQuill from "react-quill";
-import { useOurStoryContent, useUpdateOurStoryContent } from "../../hooks/website-ourstory";
-import { toast } from 'react-toastify';
+import {
+  useOurStoryContent,
+  useUpdateOurStoryContent,
+} from "../../hooks/website-ourstory";
+import { toast } from "react-toastify";
 
 const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
   const [reelThumb, setReelThumb] = useState(null);
@@ -18,7 +21,7 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
   };
 
   const isIgLink = (val) => {
-    if (!val || typeof val !== 'string') return false;
+    if (!val || typeof val !== "string") return false;
     return /instagram\.com\//i.test(val);
   };
 
@@ -29,8 +32,10 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
         return;
       }
       try {
-        const resp = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(file.url)}`);
-        if (!resp.ok) throw new Error('noembed failed');
+        const resp = await fetch(
+          `https://noembed.com/embed?url=${encodeURIComponent(file.url)}`
+        );
+        if (!resp.ok) throw new Error("noembed failed");
         const data = await resp.json();
         setReelThumb(data.thumbnail_url || null);
       } catch (_e) {
@@ -41,7 +46,7 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
   }, [file]);
 
   const isInstagramLink = (val) => {
-    if (!val || typeof val !== 'string') return false;
+    if (!val || typeof val !== "string") return false;
     return /instagram\.com\//i.test(val);
   };
 
@@ -49,16 +54,15 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
     if (!val) return val;
     // Ensure trailing /embed for Instagram preview
     if (/\/embed\/?$/i.test(val)) return val;
-    return val.endsWith('/') ? `${val}embed` : `${val}/embed`;
+    return val.endsWith("/") ? `${val}embed` : `${val}/embed`;
   };
 
   return (
     <div
       className={`relative w-full bg-slate-200 rounded-[14px] ${
         tall ? "h-[340px]" : "h-[200px] sm:h-[250px] lg:h-[360px]"
-      } flex items-center justify-center overflow-hidden`}
-    >
-      {!file ? (
+      } flex items-center justify-center overflow-hidden`}>
+      {!file ?
         <label className="cursor-pointer text-gray-500 text-sm">
           <input
             type="file"
@@ -68,39 +72,46 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
           />
           + Upload {label ? label : "File"}
         </label>
-      ) : file.type.startsWith("image") ? (
+      : file.type.startsWith("image") ?
         <img
           src={file.url}
           alt="preview"
           className="w-full h-full object-cover rounded-[14px]"
         />
-      ) : isIgLink(file.url) ? (
+      : isIgLink(file.url) ?
         <div className="w-full h-full rounded-[14px] relative overflow-hidden">
-          {reelThumb ? (
-            <img src={reelThumb} alt="Instagram Reel" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-600">Instagram Reel</div>
-          )}
+          {reelThumb ?
+            <img
+              src={reelThumb}
+              alt="Instagram Reel"
+              className="w-full h-full object-cover"
+            />
+          : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-600">
+              Instagram Reel
+            </div>
+          }
           <a
             href={file.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute inset-0 flex items-center justify-center"
-          >
+            className="absolute inset-0 flex items-center justify-center">
             <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center shadow">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000" className="w-8 h-8 ml-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="#000"
+                className="w-8 h-8 ml-1">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
           </a>
         </div>
-      ) : (
-        <video
+      : <video
           src={file.url}
           controls
           className="w-full h-full object-cover rounded-[14px]"
         />
-      )}
+      }
 
       {/* Pencil Edit Icon */}
       <img
@@ -111,14 +122,14 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
       />
 
       {/* Link Icon (for updating reel URL) */}
-      {onLink ? (
+      {onLink ?
         <img
           src="/images/link_icon_final.png"
           alt="Link"
           className="absolute top-[46px] right-2 w-[38px] h-[38px] cursor-pointer rounded-full mt-2 hover:opacity-80 transition-opacity z-10"
           onClick={onLink}
         />
-      ) : null}
+      : null}
     </div>
   );
 };
@@ -126,23 +137,64 @@ const FileUploadBox = ({ file, setFile, label, onEdit, onLink, tall }) => {
 const OurStorySection = () => {
   // Load and save hooks
   const { data: story } = useOurStoryContent();
-  const { mutate: saveOurStory, isPending: isSaving } = useUpdateOurStoryContent();
+  const { mutate: saveOurStory, isPending: isSaving } =
+    useUpdateOurStoryContent();
   const [isDirty, setIsDirty] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     if (!story) return;
-    setStoryHeroFile(story.hero?.url ? { type: story.hero.type || 'image/*', url: story.hero.url, file: null } : null);
-    setStorySection1File(story.section1?.media?.url ? { type: story.section1.media.type || 'image/*', url: story.section1.media.url, file: null } : null);
-    setStorySection1Text(story.section1?.text || '');
-    setStorySection2File(story.section2?.media?.url ? { type: story.section2.media.type || 'image/*', url: story.section2.media.url, file: null } : null);
-    setStorySection2Text(story.section2?.text || '');
-    setStorySection3File(story.section3?.media?.url ? { type: story.section3.media.type || 'image/*', url: story.section3.media.url, file: null } : null);
-    setStorySection3Text(story.section3?.text || '');
+    setStoryHeroFile(
+      story.hero?.url ?
+        { type: story.hero.type || "image/*", url: story.hero.url, file: null }
+      : null
+    );
+    setStorySection1File(
+      story.section1?.media?.url ?
+        {
+          type: story.section1.media.type || "image/*",
+          url: story.section1.media.url,
+          file: null,
+        }
+      : null
+    );
+    setStorySection1Text(story.section1?.text || "");
+    setStorySection2File(
+      story.section2?.media?.url ?
+        {
+          type: story.section2.media.type || "image/*",
+          url: story.section2.media.url,
+          file: null,
+        }
+      : null
+    );
+    setStorySection2Text(story.section2?.text || "");
+    setStorySection3File(
+      story.section3?.media?.url ?
+        {
+          type: story.section3.media.type || "image/*",
+          url: story.section3.media.url,
+          file: null,
+        }
+      : null
+    );
+    setStorySection3Text(story.section3?.text || "");
     const last = Array.isArray(story.last) ? story.last : [];
-    setStoryLastFile1(last[0]?.url ? { type: last[0].type || 'image/*', url: last[0].url, file: null } : null);
-    setStoryLastFile2(last[1]?.url ? { type: last[1].type || 'image/*', url: last[1].url, file: null } : null);
-    setStoryLastFile3(last[2]?.url ? { type: last[2].type || 'image/*', url: last[2].url, file: null } : null);
+    setStoryLastFile1(
+      last[0]?.url ?
+        { type: last[0].type || "image/*", url: last[0].url, file: null }
+      : null
+    );
+    setStoryLastFile2(
+      last[1]?.url ?
+        { type: last[1].type || "image/*", url: last[1].url, file: null }
+      : null
+    );
+    setStoryLastFile3(
+      last[2]?.url ?
+        { type: last[2].type || "image/*", url: last[2].url, file: null }
+      : null
+    );
   }, [story]);
   const [selectedTab, setSelectedTab] = useState("OurStory");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -193,6 +245,7 @@ const OurStorySection = () => {
     else if (activeTarget === "last2") setStoryLastFile2(value);
     else if (activeTarget === "last3") setStoryLastFile3(value);
     setActiveTarget(null);
+    setIsDirty(true);
   };
 
   const openReelModal = (targetKey) => {
@@ -215,6 +268,7 @@ const OurStorySection = () => {
     if (activeReelTarget === "last2") setStoryLastFile2(value);
     if (activeReelTarget === "last3") setStoryLastFile3(value);
     closeReelModal();
+    setIsDirty(true);
   };
 
   return (
@@ -236,7 +290,10 @@ const OurStorySection = () => {
               </h2>
               <FileUploadBox
                 file={storyHeroFile}
-                setFile={setStoryHeroFile}
+                setFile={(v) => {
+                  setStoryHeroFile(v);
+                  setIsDirty(true);
+                }}
                 label="Story Hero"
                 onEdit={() => handleEditClick("hero")}
                 tall
@@ -252,7 +309,10 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2">
                   <FileUploadBox
                     file={storySection1File}
-                    setFile={setStorySection1File}
+                    setFile={(v) => {
+                      setStorySection1File(v);
+                      setIsDirty(true);
+                    }}
                     label="Section 1 File"
                     onEdit={() => handleEditClick("sec1")}
                   />
@@ -260,10 +320,13 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection1Text || "<p></p>"}
-                    onChange={(html) => { setStorySection1Text(html); setIsDirty(true); }}
+                    onChange={(html) => {
+                      setStorySection1Text(html);
+                      setIsDirty(true);
+                    }}
                     placeholder="Write Section 1 content..."
                     theme="snow"
-                    style={{ height: "320px" , width: "500px" }}
+                    style={{ height: "320px", width: "500px" }}
                   />
                 </div>
               </div>
@@ -278,16 +341,22 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection2Text || "<p></p>"}
-                    onChange={(html) => { setStorySection2Text(html); setIsDirty(true); }}
+                    onChange={(html) => {
+                      setStorySection2Text(html);
+                      setIsDirty(true);
+                    }}
                     placeholder="Write Section 2 content..."
                     theme="snow"
-                    style={{ height: "320px"  , width: "500px"}}
+                    style={{ height: "320px", width: "500px" }}
                   />
                 </div>
                 <div className="w-full lg:w-1/2">
                   <FileUploadBox
                     file={storySection2File}
-                    setFile={setStorySection2File}
+                    setFile={(v) => {
+                      setStorySection2File(v);
+                      setIsDirty(true);
+                    }}
                     label="Section 2 File"
                     onEdit={() => handleEditClick("sec2")}
                   />
@@ -304,7 +373,10 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2">
                   <FileUploadBox
                     file={storySection3File}
-                    setFile={setStorySection3File}
+                    setFile={(v) => {
+                      setStorySection3File(v);
+                      setIsDirty(true);
+                    }}
                     label="Section 3 File"
                     onEdit={() => handleEditClick("sec3")}
                   />
@@ -312,10 +384,13 @@ const OurStorySection = () => {
                 <div className="w-full lg:w-1/2 card">
                   <ReactQuill
                     value={storySection3Text || "<p></p>"}
-                    onChange={(html) => { setStorySection3Text(html); setIsDirty(true); }}
+                    onChange={(html) => {
+                      setStorySection3Text(html);
+                      setIsDirty(true);
+                    }}
                     placeholder="Write Section 3 content..."
                     theme="snow"
-                    style={{ height: "320px" , width: "500px" }}
+                    style={{ height: "320px", width: "500px" }}
                   />
                 </div>
               </div>
@@ -329,7 +404,10 @@ const OurStorySection = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <FileUploadBox
                   file={storyLastFile1}
-                  setFile={setStoryLastFile1}
+                  setFile={(v) => {
+                    setStoryLastFile1(v);
+                    setIsDirty(true);
+                  }}
                   label="Last 1"
                   onEdit={() => handleEditClick("last1")}
                   onLink={() => openReelModal("last1")}
@@ -337,7 +415,10 @@ const OurStorySection = () => {
                 />
                 <FileUploadBox
                   file={storyLastFile2}
-                  setFile={setStoryLastFile2}
+                  setFile={(v) => {
+                    setStoryLastFile2(v);
+                    setIsDirty(true);
+                  }}
                   label="Last 2"
                   onEdit={() => handleEditClick("last2")}
                   onLink={() => openReelModal("last2")}
@@ -345,7 +426,10 @@ const OurStorySection = () => {
                 />
                 <FileUploadBox
                   file={storyLastFile3}
-                  setFile={setStoryLastFile3}
+                  setFile={(v) => {
+                    setStoryLastFile3(v);
+                    setIsDirty(true);
+                  }}
                   label="Last 3"
                   onEdit={() => handleEditClick("last3")}
                   onLink={() => openReelModal("last3")}
@@ -354,42 +438,94 @@ const OurStorySection = () => {
               </div>
             </div>
 
-      {/* Save Button */}
+            {/* Save Button */}
             <div className="flex flex-col items-center mb-5 ">
-              {saveMessage ? (
-                <div className="mb-3 text-green-700 text-2xl font-medium">{saveMessage}</div>
-              ) : null}
+              {saveMessage ?
+                <div className="mb-3 text-green-700 text-2xl font-medium">
+                  {saveMessage}
+                </div>
+              : null}
               <Button
                 variant="primary"
                 className="active mt-6 w-[200px] py-2 !bg-[#099a0e] text-[#099a0e] font-serif text-xl rounded-md shadow-md border border-[#099a0e] hover:shadow-lg transition-all"
-          onClick={() => {
-            saveOurStory({
-              hero: storyHeroFile ? (storyHeroFile.file instanceof File ? storyHeroFile.file : storyHeroFile.url) : null,
-              section1Media: storySection1File ? (storySection1File.file instanceof File ? storySection1File.file : storySection1File.url) : null,
-              section1Text: storySection1Text,
-              section2Media: storySection2File ? (storySection2File.file instanceof File ? storySection2File.file : storySection2File.url) : null,
-              section2Text: storySection2Text,
-              section3Media: storySection3File ? (storySection3File.file instanceof File ? storySection3File.file : storySection3File.url) : null,
-              section3Text: storySection3Text,
-              last: [
-                storyLastFile1 ? (storyLastFile1.file instanceof File ? storyLastFile1.file : storyLastFile1.url) : null,
-                storyLastFile2 ? (storyLastFile2.file instanceof File ? storyLastFile2.file : storyLastFile2.url) : null,
-                storyLastFile3 ? (storyLastFile3.file instanceof File ? storyLastFile3.file : storyLastFile3.url) : null,
-              ],
-            }, {
-              onSuccess: (data) => { console.log('Our Story updated:', data); toast.success('Our Story updated successfully'); setSaveMessage('Our Story section successfully updated.'); setTimeout(() => setSaveMessage(''), 2000); setIsDirty(false); },
-              onError: (err) => { console.error('Our Story update failed:', err); toast.error(err?.message || 'Failed to update Our Story'); setSaveMessage(''); }
-            })
-          }}
-              disabled={!isDirty || isSaving}
-              >
+                onClick={() => {
+                  saveOurStory(
+                    {
+                      hero:
+                        storyHeroFile ?
+                          storyHeroFile.file instanceof File ?
+                            storyHeroFile.file
+                          : storyHeroFile.url
+                        : null,
+                      section1Media:
+                        storySection1File ?
+                          storySection1File.file instanceof File ?
+                            storySection1File.file
+                          : storySection1File.url
+                        : null,
+                      section1Text: storySection1Text,
+                      section2Media:
+                        storySection2File ?
+                          storySection2File.file instanceof File ?
+                            storySection2File.file
+                          : storySection2File.url
+                        : null,
+                      section2Text: storySection2Text,
+                      section3Media:
+                        storySection3File ?
+                          storySection3File.file instanceof File ?
+                            storySection3File.file
+                          : storySection3File.url
+                        : null,
+                      section3Text: storySection3Text,
+                      last: [
+                        storyLastFile1 ?
+                          storyLastFile1.file instanceof File ?
+                            storyLastFile1.file
+                          : storyLastFile1.url
+                        : null,
+                        storyLastFile2 ?
+                          storyLastFile2.file instanceof File ?
+                            storyLastFile2.file
+                          : storyLastFile2.url
+                        : null,
+                        storyLastFile3 ?
+                          storyLastFile3.file instanceof File ?
+                            storyLastFile3.file
+                          : storyLastFile3.url
+                        : null,
+                      ],
+                    },
+                    {
+                      onSuccess: (data) => {
+                        console.log("Our Story updated:", data);
+                        toast.success("Our Story updated successfully");
+                        setSaveMessage(
+                          "Our Story section successfully updated."
+                        );
+                        setTimeout(() => setSaveMessage(""), 2000);
+                        setIsDirty(false);
+                      },
+                      onError: (err) => {
+                        console.error("Our Story update failed:", err);
+                        toast.error(
+                          err?.message || "Failed to update Our Story"
+                        );
+                        setSaveMessage("");
+                      },
+                    }
+                  );
+                }}
+                disabled={!isDirty || isSaving}>
                 <div className="flex items-center justify-center gap-2">
                   <img
                     src="/images/img_charmtick.svg"
                     alt="Save"
                     className="w-[24px] h-[24px]"
                   />
-            <span className="text-white">{isSaving ? 'Saving...' : 'Save'}</span>
+                  <span className="text-white">
+                    {isSaving ? "Saving..." : "Save"}
+                  </span>
                 </div>
               </Button>
             </div>
@@ -405,7 +541,7 @@ const OurStorySection = () => {
       />
 
       {/* Reel URL Modal */}
-      {isReelModalOpen ? (
+      {isReelModalOpen ?
         <div className="flex justify-center items-center min-h-screen bg-black bg-opacity-50 fixed inset-0 z-50">
           <div className="bg-white rounded-[14px] w-full max-w-[600px] mx-4 sm:mx-6 lg:mx-auto">
             <div className="flex flex-col items-center p-6">
@@ -415,9 +551,12 @@ const OurStorySection = () => {
                 </h2>
                 <button
                   onClick={closeReelModal}
-                  className="w-[34px] h-[34px] flex items-center justify-center hover:opacity-70 transition-opacity"
-                >
-                  <img src="/images/img_basil_cross_solid.svg" alt="Close" className="w-[34px] h-[34px]" />
+                  className="w-[34px] h-[34px] flex items-center justify-center hover:opacity-70 transition-opacity">
+                  <img
+                    src="/images/img_basil_cross_solid.svg"
+                    alt="Close"
+                    className="w-[34px] h-[34px]"
+                  />
                 </button>
               </div>
               <div className="w-full mb-5">
@@ -432,15 +571,14 @@ const OurStorySection = () => {
               <div className="w-full">
                 <Button
                   onClick={saveReelUrl}
-                  className="!bg-[#099a0e] w-full bg-button-1 text-button-1 px-[34px] py-[8px] text-[18px] font-bellefair font-normal leading-[21px] text-center rounded-[10px] hover:opacity-90 transition-opacity"
-                >
+                  className="!bg-[#099a0e] w-full bg-button-1 text-button-1 px-[34px] py-[8px] text-[18px] font-bellefair font-normal leading-[21px] text-center rounded-[10px] hover:opacity-90 transition-opacity">
                   Save
                 </Button>
               </div>
             </div>
           </div>
         </div>
-      ) : null}
+      : null}
     </div>
   );
 };
